@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14232b">
+<title>Chess Helper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14232b;
+    --panel: #1d323d;
+    --ink: #eef3f1;
+    --muted: #93a8b0;
+    --light-sq: #e6dcc3;
+    --dark-sq: #5f8a8b;
+    --pick: #f2c14e;
+    --hint: #5ee08a;
+    --last: rgba(242, 193, 78, .38);
+    --danger: #ff7b6b;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: env(safe-area-inset-top, 0px) 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
+    max-width: 520px; margin: 0 auto;
+  }
+  h1 { font-size: 1.15rem; margin: 14px 0 10px; font-weight: 700; letter-spacing: .01em; }
+
+  .suggest {
+    background: var(--panel); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 68px;
+  }
+  .suggest .label { color: var(--muted); font-size: .82rem; }
+  .suggest .move { font-size: 1.9rem; font-weight: 700; line-height: 1.1; color: var(--hint); }
+  .suggest .move.opp { color: var(--pick); }
+  .suggest .eval { text-align: right; }
+  .suggest .eval b { font-size: 1.3rem; display: block; }
+  .suggest .eval span { color: var(--muted); font-size: .8rem; }
+
+  .board-wrap { position: relative; }
+  .board {
+    display: grid; grid-template-columns: repeat(8, 1fr); width: 100%; aspect-ratio: 1;
+    border-radius: 8px; overflow: hidden; user-select: none; touch-action: manipulation;
+  }
+  .sq {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    font-size: min(10.5vw, 54px); line-height: 1; cursor: pointer;
+  }
+  .sq.l { background: var(--light-sq); }
+  .sq.d { background: var(--dark-sq); }
+  .sq.last::before { content: ""; position: absolute; inset: 0; background: var(--last); }
+  .sq.sel::before { content: ""; position: absolute; inset: 0; background: var(--pick); opacity: .75; }
+  .sq.from-hint { box-shadow: inset 0 0 0 3px var(--hint); }
+  .sq.to-hint { box-shadow: inset 0 0 0 4px var(--hint); background-image: radial-gradient(circle, rgba(94,224,138,.55) 0 30%, transparent 32%); }
+  .sq.check { background-image: radial-gradient(circle, rgba(255,90,70,.9) 0 25%, rgba(255,90,70,0) 72%); }
+  .sq .dot { position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(20,35,43,.35); }
+  .sq .ring { position: absolute; inset: 6%; border-radius: 50%; border: 4px solid rgba(20,35,43,.35); }
+  .sq .coord { position: absolute; font-size: .6rem; font-weight: 700; opacity: .65; pointer-events: none; }
+  .sq .coord.r { top: 2px; left: 3px; }
+  .sq .coord.f { bottom: 1px; right: 3px; }
+  .sq.l .coord { color: var(--dark-sq); }
+  .sq.d .coord { color: var(--light-sq); }
+  .piece { position: relative; z-index: 1; }
+  .piece.w { color: #fffdf6; text-shadow: 0 0 2px #14232b, 0 0 2px #14232b, 0 0 1px #14232b, 0 1px 0 #14232b, 0 -1px 0 #14232b, 1px 0 0 #14232b, -1px 0 0 #14232b; }
+  .piece.b { color: #14232b; text-shadow: 0 0 1px rgba(255,255,255,.25); }
+
+  .status { margin: 10px 2px; color: var(--muted); font-size: .92rem; min-height: 1.3em; }
+  .status.alert { color: var(--danger); }
+
+  .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+  button, select {
+    font: inherit; font-size: .92rem; color: var(--ink); background: var(--panel);
+    border: 1px solid #2c4756; border-radius: var(--radius); padding: 12px 6px; cursor: pointer; min-height: 46px;
+  }
+  button:active { transform: scale(.97); }
+  button:focus-visible, select:focus-visible, .sq:focus-visible { outline: 3px solid var(--pick); outline-offset: 2px; }
+  button.primary { background: var(--hint); color: #0f2318; border-color: var(--hint); font-weight: 700; }
+
+  .opts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  label.f { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: .78rem; }
+  label.f select { width: 100%; }
+
+  .moves {
+    margin-top: 12px; background: var(--panel); border-radius: var(--radius); padding: 10px 12px;
+    font-size: .9rem; line-height: 1.6; max-height: 120px; overflow-y: auto; color: var(--ink);
+  }
+  .moves .empty { color: var(--muted); }
+  .moves .n { color: var(--muted); margin-left: 6px; }
+  footer { color: var(--muted); font-size: .76rem; margin-top: 14px; line-height: 1.5; }
+
+  button.wide { width: 100%; margin-bottom: 10px; }
+  .cam-log { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .7rem; line-height: 1.35; color: #cfe8d8; background: #05100b; border-radius: 6px; padding: 6px 8px; margin-top: 6px; min-height: 4.6em; overflow: hidden; white-space: pre-wrap; }
+  .cam { background: var(--panel); border-radius: var(--radius); padding: 10px; margin-bottom: 10px; }
+  .cam[hidden] { display: none; }
+  .cam-view { position: relative; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden; min-height: 80px; }
+  .cam-view video { display: block; width: 100%; height: 100%; object-fit: fill; }
+  .cam-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: manipulation; }
+  .cam-msg { margin: 8px 2px; font-size: .88rem; color: var(--ink); min-height: 2.6em; line-height: 1.35; }
+  .cam-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .cam-row button { font-size: .82rem; padding: 10px 4px; min-height: 42px; }
+  .cam-bottom { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+  .cam-bottom canvas { width: 120px; height: 120px; border-radius: 6px; background: #0e1a20; flex: none; }
+  .cam-bottom .col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .cam-bottom input[type=range] { width: 100%; }
+  label.chk { display: flex; gap: 8px; align-items: center; font-size: .88rem; color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+</style>
+</head>
+<body>
+
+<h1>Chess Helper</h1>
+
+<div hidden>
+<div class="suggest" aria-live="polite">
+  <div>
+    <div class="label" id="sLabel">Loading engine…</div>
+    <div class="move" id="sMove">—</div>
+  </div>
+  <div class="eval">
+    <b id="eVal">0.0</b>
+    <span id="eDepth">depth 0</span>
+  </div>
+</div>
+
+</div>
+
+<button id="btnCam" class="wide primary">Start camera</button>
+
+<div class="cam" id="cam" hidden>
+  <div class="cam-view" id="camView">
+    <video id="camVideo" playsinline muted autoplay></video>
+    <canvas id="camOverlay"></canvas>
+  </div>
+  <div class="cam-log" id="camLog" aria-live="polite"></div>
+  <div class="cam-msg" id="camMsg"></div>
+  <div class="cam-row">
+    <button id="camReset">Find board</button>
+    <button id="camRotate">Rotate</button>
+    <button id="camStart" class="primary">Set start</button>
+    <button id="camSync">Sync</button>
+  </div>
+  <div class="cam-bottom">
+    <canvas id="camPreview" width="160" height="160" aria-label="Straightened board preview"></canvas>
+    <div class="col">
+      <label class="f">Sensitivity (lower sees smaller changes)
+        <input type="range" id="camSens" min="6" max="30" value="14">
+      </label>
+      <label class="chk"><input type="checkbox" id="camTrack" checked> Track moves from camera</label>
+      <label class="chk"><input type="checkbox" id="camBig" checked> Bigger camera view</label>
+    </div>
+  </div>
+</div>
+
+<div hidden>
+<div class="board-wrap">
+  <div class="board" id="board" role="grid" aria-label="Chess board"></div>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="row">
+  <button id="btnUndo">Undo</button>
+  <button id="btnFlip">Flip</button>
+  <button id="btnNew">New game</button>
+  <button id="btnHint" class="primary">Think</button>
+</div>
+
+</div>
+
+<div class="opts">
+  <label class="f">I play
+    <select id="selSide">
+      <option value="w">White</option>
+      <option value="b">Black</option>
+    </select>
+  </label>
+  <label class="f">Depth
+    <select id="selDepth">
+      <option value="10">10 (fast)</option>
+      <option value="14" selected>14</option>
+      <option value="18">18 (slow)</option>
+    </select>
+  </label>
+  <label class="f">Auto-suggest
+    <select id="selAuto">
+      <option value="mine" selected>My turn only</option>
+      <option value="all">Every turn</option>
+      <option value="off">Off (tap Think)</option>
+    </select>
+  </label>
+</div>
+
+<div hidden>
+<div class="moves" id="moves"><span class="empty">Moves will show here.</span></div>
+
+<footer>
+  Enter your opponent's moves and your own by tapping a piece, then a square. Best used for casual games, practice and analysis.
+</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+/* Board finder: looks for the 8x8 grid of lines in the camera picture. No libraries needed. */
+(function () {
+"use strict";
+/* Pure-JS chessboard finder (no libraries).
+   detectBoardJS(rgba, W, H) -> { pts:[[x,y]x4 normalized TL,TR,BR,BL], rot, corr, orientSure } or null */
+function detectBoardJS(rgba, W, H) {
+  var TW = 320, TH = Math.max(1, Math.round(H * TW / W));
+  var g = blur3(downGray(rgba, W, H, TW, TH), TW, TH);
+  var lines = houghLines(g, TW, TH);
+  if (lines.length < 8) return null;
+
+  // split lines into two families by angle
+  var t1 = lines[0].t, fa = [], fb = [], t2 = null, i;
+  for (i = 1; i < lines.length; i++) if (angDiff(lines[i].t, t1) >= 30) { t2 = lines[i].t; break; }
+  if (t2 === null) return null;
+  for (i = 0; i < lines.length; i++) {
+    var d1 = angDiff(lines[i].t, t1), d2 = angDiff(lines[i].t, t2);
+    if (d1 <= d2 && d1 <= 40) fa.push(lines[i]); else if (d2 < d1 && d2 <= 40) fb.push(lines[i]);
+  }
+  if (fa.length < 5 || fb.length < 5) return null;
+  fa = fa.slice(0, 18); fb = fb.slice(0, 18);
+
+  // each family should be 9 evenly spaced grid lines (in perspective). Find the best fits.
+  var refB = fb[0], refA = fa[0];
+  var hA = familyHyps(fa, refB), hB = familyHyps(fb, refA);
+  if (!hA.length || !hB.length) return null;
+
+  var found = [], x, y;
+  for (x = 0; x < hA.length; x++) for (y = 0; y < hB.length; y++) {
+    var A0 = gridLine(hA[x], 0), A8 = gridLine(hA[x], 8), B0 = gridLine(hB[y], 0), B8 = gridLine(hB[y], 8);
+    var p00 = inter(A0, B0), p01 = inter(A0, B8), p11 = inter(A8, B8), p10 = inter(A8, B0);
+    if (!p00 || !p01 || !p11 || !p10) continue;
+    var q = orderQuad([p00, p01, p11, p10]);
+    if (!okQuad(q, TW, TH)) continue;
+    found.push({ q: q, s: Math.abs(quadScore(g, TW, TH, q, 0)) });
+  }
+  if (!found.length) return null;
+  found.sort(function (u, v) { return v.s - u.s; });
+  var best = null, k;
+  for (k = 0; k < Math.min(4, found.length); k++) {
+    var pq = polish(g, TW, TH, found[k].q);
+    if (!best || pq.s > best.s) best = pq;
+  }
+  if (!best || best.s < 0.5) return null;
+
+  var rot = quadScore(g, TW, TH, best.q, 0) < 0 ? 0 : 1;     // a1 (bottom-left) must be a dark square
+  var sure = bottomMinusTop(g, TW, TH, best.q, rot);
+  if (sure < 0) { rot = (rot + 2) % 4; sure = -sure; }
+  return {
+    pts: best.q.map(function (p) { return [p[0] / TW, p[1] / TH]; }),
+    rot: rot, corr: best.s, orientSure: sure >= 12
+  };
+}
+
+/* Position of each line along a reference line, then fit "9 evenly spaced lines seen in perspective" */
+function familyHyps(fam, ref) {
+  var cr = Math.cos(ref.t * Math.PI / 180), sr = Math.sin(ref.t * Math.PI / 180);
+  var p0 = [ref.r * cr, ref.r * sr], dir = [-sr, cr], items = [], i, j, l;
+  for (i = 0; i < fam.length; i++) {
+    var p = inter(fam[i], ref);
+    if (!p) continue;
+    items.push({ l: fam[i], s: (p[0] - p0[0]) * dir[0] + (p[1] - p0[1]) * dir[1] });
+  }
+  items.sort(function (a, b) { return a.s - b.s; });
+  var uniq = [];
+  items.forEach(function (it) {
+    if (uniq.length && Math.abs(uniq[uniq.length - 1].s - it.s) < 2.5) { if (it.l.v > uniq[uniq.length - 1].l.v) uniq[uniq.length - 1] = it; }
+    else uniq.push(it);
+  });
+  items = uniq;
+  var n = items.length, hyps = {}, a, b, c, ka, kb, kc;
+  if (n < 5) return [];
+  for (a = 0; a < n; a++) for (b = a + 1; b < n; b++) for (c = b + 1; c < n; c++)
+    for (ka = 0; ka < 7; ka++) for (kb = ka + 1; kb < 8; kb++) for (kc = kb + 1; kc < 9; kc++) {
+      var ks = [ka, kb, kc], ss = [items[a].s, items[b].s, items[c].s];
+      var sol = solve3([[ks[0], 1, -ss[0] * ks[0]], [ks[1], 1, -ss[1] * ks[1]], [ks[2], 1, -ss[2] * ks[2]]], ss);
+      if (!sol) continue;
+      var al = sol[0], be = sol[1], ga = sol[2], S = [], ok = true, k;
+      for (k = -1; k <= 9; k++) if (ga * k + 1 < 0.1) { ok = false; break; }
+      if (!ok) continue;
+      for (k = 0; k <= 8; k++) S.push((al * k + be) / (ga * k + 1));
+      for (k = 0; k < 8; k++) if (S[k + 1] - S[k] <= 1) { ok = false; break; }
+      if (!ok) continue;
+      var used = {}, count = 0, matched = [];
+      for (j = 0; j < n; j++) {
+        for (k = 0; k <= 8; k++) {
+          var tol = 0.2 * (k < 8 ? S[k + 1] - S[k] : S[8] - S[7]);
+          if (!used[k] && Math.abs(items[j].s - S[k]) < tol) { used[k] = true; count++; matched.push(items[j].l); break; }
+        }
+      }
+      if (count < 5) continue;
+      var key = Math.round(S[0] / 3) + "_" + Math.round(S[8] / 3);
+      if (!hyps[key] || hyps[key].count < count) hyps[key] = { count: count, al: al, be: be, ga: ga, matched: matched, ref: ref, p0: p0, dir: dir };
+    }
+  var out = Object.keys(hyps).map(function (k2) { return hyps[k2]; });
+  out.sort(function (u, v) { return v.count - u.count; });
+  out = out.slice(0, 7);
+  out.forEach(function (h) { h.V = vanish(h.matched); });
+  return out;
+}
+function solve3(A, b) {
+  var M = [A[0].concat([b[0]]), A[1].concat([b[1]]), A[2].concat([b[2]])], i, j, k;
+  for (i = 0; i < 3; i++) {
+    var p = i;
+    for (j = i + 1; j < 3; j++) if (Math.abs(M[j][i]) > Math.abs(M[p][i])) p = j;
+    var t = M[i]; M[i] = M[p]; M[p] = t;
+    if (Math.abs(M[i][i]) < 1e-9) return null;
+    for (j = i + 1; j < 3; j++) { var f = M[j][i] / M[i][i]; for (k = i; k < 4; k++) M[j][k] -= f * M[i][k]; }
+  }
+  var x = [0, 0, 0];
+  for (i = 2; i >= 0; i--) { var s = M[i][3]; for (j = i + 1; j < 3; j++) s -= M[i][j] * x[j]; x[i] = s / M[i][i]; }
+  return x;
+}
+function vanish(ls) {
+  var a = 0, b = 0, d = 0, e = 0, f = 0, tm = 0;
+  ls.forEach(function (l) {
+    var c = Math.cos(l.t * Math.PI / 180), s = Math.sin(l.t * Math.PI / 180);
+    a += c * c; b += c * s; d += s * s; e += c * l.r; f += s * l.r; tm += l.t;
+  });
+  var det = a * d - b * b;
+  if (Math.abs(det) < 1e-3 * ls.length * ls.length) return null;   // essentially parallel
+  var V = [(e * d - b * f) / det, (a * f - b * e) / det];
+  if (Math.hypot(V[0], V[1]) > 5e4) return null;
+  return V;
+}
+function gridLine(h, k) {
+  var s = (h.al * k + h.be) / (h.ga * k + 1);
+  var P = [h.p0[0] + s * h.dir[0], h.p0[1] + s * h.dir[1]];
+  var dx, dy;
+  if (h.V) { dx = h.V[0] - P[0]; dy = h.V[1] - P[1]; }
+  else { var tm = 0; h.matched.forEach(function (l) { tm += l.t; }); tm = tm / h.matched.length * Math.PI / 180; dx = -Math.sin(tm); dy = Math.cos(tm); }
+  var len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
+  var nx = -dy, ny = dx;
+  return { t: Math.atan2(ny, nx) * 180 / Math.PI, r: nx * P[0] + ny * P[1] };
+}
+
+function downGray(rgba, W, H, TW, TH) {
+  var g = new Float32Array(TW * TH), fx = W / TW, fy = H / TH, x, y, ox, oy;
+  var offs = [0.25, 0.75];
+  for (y = 0; y < TH; y++) for (x = 0; x < TW; x++) {
+    var s = 0;
+    for (oy = 0; oy < 2; oy++) for (ox = 0; ox < 2; ox++) {
+      var sx = Math.min(W - 1, Math.floor((x + offs[ox]) * fx)), sy = Math.min(H - 1, Math.floor((y + offs[oy]) * fy));
+      var k = (sy * W + sx) * 4;
+      s += rgba[k] * 0.299 + rgba[k + 1] * 0.587 + rgba[k + 2] * 0.114;
+    }
+    g[y * TW + x] = s / 4;
+  }
+  return g;
+}
+function blur3(g, W, H) {
+  var t = new Float32Array(W * H), o = new Float32Array(W * H), x, y;
+  for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+    var a = g[y * W + Math.max(0, x - 1)], b = g[y * W + x], c = g[y * W + Math.min(W - 1, x + 1)];
+    t[y * W + x] = (a + b + c) / 3;
+  }
+  for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+    var a2 = t[Math.max(0, y - 1) * W + x], b2 = t[y * W + x], c2 = t[Math.min(H - 1, y + 1) * W + x];
+    o[y * W + x] = (a2 + b2 + c2) / 3;
+  }
+  return o;
+}
+
+function houghLines(g, W, H) {
+  var n = W * H, mag = new Float32Array(n), gxA = new Float32Array(n), gyA = new Float32Array(n), x, y, i;
+  for (y = 1; y < H - 1; y++) for (x = 1; x < W - 1; x++) {
+    var p = y * W + x;
+    var gx = (g[p - W + 1] + 2 * g[p + 1] + g[p + W + 1]) - (g[p - W - 1] + 2 * g[p - 1] + g[p + W - 1]);
+    var gy = (g[p + W - 1] + 2 * g[p + W] + g[p + W + 1]) - (g[p - W - 1] + 2 * g[p - W] + g[p - W + 1]);
+    gxA[p] = gx; gyA[p] = gy; mag[p] = Math.abs(gx) + Math.abs(gy);
+  }
+  var hist = new Float32Array(300);
+  for (i = 0; i < n; i++) hist[Math.min(299, mag[i] >> 2)]++;
+  var cum = 0, thr = 30;
+  for (i = 0; i < 300; i++) { cum += hist[i]; if (cum >= n * 0.9) { thr = Math.max(30, i * 4); break; } }
+
+  var diag = Math.ceil(Math.hypot(W, H)), RW = 2 * diag + 1;
+  var acc = new Float32Array(180 * RW), cs = [], sn = [], t;
+  for (t = 0; t < 180; t++) { cs.push(Math.cos(t * Math.PI / 180)); sn.push(Math.sin(t * Math.PI / 180)); }
+  for (y = 1; y < H - 1; y++) for (x = 1; x < W - 1; x++) {
+    var q = y * W + x;
+    if (mag[q] < thr) continue;
+    var phi = Math.atan2(gyA[q], gxA[q]) * 180 / Math.PI;
+    var t0 = ((Math.round(phi) % 180) + 180) % 180;
+    for (var d = -4; d <= 4; d++) {
+      var tt = (t0 + d + 180) % 180;
+      var rho = x * cs[tt] + y * sn[tt];
+      acc[tt * RW + Math.round(rho) + diag] += 1;
+    }
+  }
+  var minV = Math.max(30, W * 0.12), peaks = [], r;
+  for (t = 0; t < 180; t++) for (r = 0; r < RW; r++) {
+    var v = acc[t * RW + r];
+    if (v < minV) continue;
+    var isMax = true;
+    for (var dt = -4; dt <= 4 && isMax; dt++) {
+      var t3 = (t + dt + 180) % 180;
+      for (var dr = -2; dr <= 2; dr++) {
+        var r3 = r + dr;
+        if (r3 < 0 || r3 >= RW || (dt === 0 && dr === 0)) continue;
+        var v3 = acc[t3 * RW + r3];
+        if (v3 > v || (v3 === v && (dt < 0 || (dt === 0 && dr < 0)))) { isMax = false; break; }
+      }
+    }
+    if (isMax) peaks.push({ t: t, r: r - diag, v: v });
+  }
+  peaks.sort(function (a, b) { return b.v - a.v; });
+  var out = [];
+  peaks.forEach(function (pk) {
+    for (var j = 0; j < out.length; j++) if (angDiff(out[j].t, pk.t) < 4 && Math.abs(out[j].r - pk.r) < 3.5) return;
+    if (out.length < 45) out.push(pk);
+  });
+  return out;
+}
+function angDiff(a, b) { var d = Math.abs(a - b) % 180; return d > 90 ? 180 - d : d; }
+function inter(a, b) {
+  var ca = Math.cos(a.t * Math.PI / 180), sa = Math.sin(a.t * Math.PI / 180);
+  var cb = Math.cos(b.t * Math.PI / 180), sb = Math.sin(b.t * Math.PI / 180);
+  var det = ca * sb - sa * cb;
+  if (Math.abs(det) < 0.2) return null;
+  return [(a.r * sb - sa * b.r) / det, (ca * b.r - a.r * cb) / det];
+}
+function orderQuad(q) {
+  var sum = q.map(function (p) { return p[0] + p[1]; }), dif = q.map(function (p) { return p[0] - p[1]; });
+  var tl = q[sum.indexOf(Math.min.apply(null, sum))], br = q[sum.indexOf(Math.max.apply(null, sum))];
+  var tr = q[dif.indexOf(Math.max.apply(null, dif))], bl = q[dif.indexOf(Math.min.apply(null, dif))];
+  return [tl, tr, br, bl];
+}
+function cross(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+function okQuad(q, W, H) {
+  var i, s = 0;
+  for (i = 0; i < 4; i++) {
+    var c = cross(q[i], q[(i + 1) % 4], q[(i + 2) % 4]);
+    if (c <= 0) return false;                       // must be convex, clockwise
+    if (q[i][0] < -W * 0.15 || q[i][0] > W * 1.15 || q[i][1] < -H * 0.15 || q[i][1] > H * 1.15) return false;
+  }
+  for (i = 0; i < 4; i++) { var a = q[i], b = q[(i + 1) % 4]; s += a[0] * b[1] - b[0] * a[1]; }
+  var area = Math.abs(s) / 2;
+  if (area < W * H * 0.035 || area > W * H * 1.1) return false;
+  var side = [0, 1, 2, 3].map(function (j) { return Math.hypot(q[j][0] - q[(j + 1) % 4][0], q[j][1] - q[(j + 1) % 4][1]); });
+  if (Math.min.apply(null, side) < Math.max.apply(null, side) * 0.3) return false;
+  return true;
+}
+
+function solveH(s, d) {
+  var A = [], b = [], i, j, c, r, k, n = 8;
+  for (i = 0; i < 4; i++) {
+    var u = s[i][0], v = s[i][1], x = d[i][0], y = d[i][1];
+    A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); b.push(x);
+    A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); b.push(y);
+  }
+  for (c = 0; c < n; c++) {
+    var p = c;
+    for (r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    var t = A[c]; A[c] = A[p]; A[p] = t; var tb = b[c]; b[c] = b[p]; b[p] = tb;
+    if (Math.abs(A[c][c]) < 1e-12) return null;
+    for (r = c + 1; r < n; r++) { var f = A[r][c] / A[c][c]; for (k = c; k < n; k++) A[r][k] -= f * A[c][k]; b[r] -= f * b[c]; }
+  }
+  var h = new Array(n);
+  for (i = n - 1; i >= 0; i--) { var sum = b[i]; for (j = i + 1; j < n; j++) sum -= A[i][j] * h[j]; h[i] = sum / A[i][i]; }
+  return h;
+}
+var UNIT = [[0, 0], [8, 0], [8, 8], [0, 8]];
+function homog(q, rot) {
+  var d = [], i;
+  for (i = 0; i < 4; i++) d.push(q[(i + rot) % 4]);
+  return solveH(UNIT, d);
+}
+var RING = [[.2, .2], [.8, .2], [.2, .8], [.8, .8], [.5, .12], [.5, .88], [.12, .5], [.88, .5]];
+function sampleAt(g, W, H, h, u, v) {
+  var w = h[6] * u + h[7] * v + 1;
+  var x = Math.round((h[0] * u + h[1] * v + h[2]) / w), y = Math.round((h[3] * u + h[4] * v + h[5]) / w);
+  if (x < 0 || y < 0 || x >= W || y >= H) return -1;
+  return g[y * W + x];
+}
+/* correlation of square-edge brightness with a checker pattern. Negative when a1 (bottom-left) is dark. */
+function quadScore(g, W, H, q, rot) {
+  var h = homog(q, rot);
+  if (!h) return 0;
+  var L = new Array(64), m = 0, r, c, k;
+  for (r = 0; r < 8; r++) for (c = 0; c < 8; c++) {
+    var s = 0, n = 0;
+    for (k = 0; k < RING.length; k++) {
+      var v = sampleAt(g, W, H, h, c + RING[k][0], r + RING[k][1]);
+      if (v < 0) return 0;
+      s += v; n++;
+    }
+    L[r * 8 + c] = s / n; m += s / n;
+  }
+  m /= 64;
+  var num = 0, den = 0;
+  for (r = 0; r < 8; r++) for (c = 0; c < 8; c++) {
+    var d = L[r * 8 + c] - m, sg = ((r + c) % 2 === 1) ? 1 : -1;
+    num += d * sg; den += d * d;
+  }
+  if (den / 64 < 100) return 0;                      // too flat (std < 10)
+  return num / Math.sqrt(den * 64);
+}
+function polish(g, W, H, q) {
+  var cur = q.map(function (p) { return [p[0], p[1]]; }), best = Math.abs(quadScore(g, W, H, cur, 0));
+  [3, 1.5, 0.75].forEach(function (step) {
+    for (var round = 0; round < 3; round++) {
+      var improved = false;
+      for (var i = 0; i < 4; i++) for (var ax = 0; ax < 2; ax++) for (var sg = -1; sg <= 1; sg += 2) {
+        var trial = cur.map(function (p) { return [p[0], p[1]]; });
+        trial[i][ax] += sg * step;
+        var s = Math.abs(quadScore(g, W, H, trial, 0));
+        if (s > best + 1e-4) { best = s; cur = trial; improved = true; }
+      }
+      if (!improved) break;
+    }
+  });
+  return { q: cur, s: best };
+}
+function bottomMinusTop(g, W, H, q, rot) {
+  var h = homog(q, rot);
+  if (!h) return 0;
+  function band(r0) {
+    var s = 0, n = 0;
+    for (var r = r0; r < r0 + 2; r++) for (var c = 0; c < 8; c++)
+      for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) {
+        var v = sampleAt(g, W, H, h, c + 0.3 + 0.2 * j, r + 0.3 + 0.2 * i);
+        if (v >= 0) { s += v; n++; }
+      }
+    return n ? s / n : 0;
+  }
+  return band(6) - band(0);
+}
+
+function boardFit(rgba, W, H, ptsN) {
+  var TW = 320, TH = Math.max(1, Math.round(H * TW / W));
+  var g = blur3(downGray(rgba, W, H, TW, TH), TW, TH);
+  var q = ptsN.map(function (p) { return [p[0] * TW, p[1] * TH]; });
+  return Math.abs(quadScore(g, TW, TH, q, 0));
+}
+window.ChessBoardFinder = { detect: detectBoardJS, fit: boardFit };
+
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var ENGINE_URL = "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js";
+  var GLYPH = { k: "\u265A", q: "\u265B", r: "\u265C", b: "\u265D", n: "\u265E", p: "\u265F" };
+  var FILES = "abcdefgh";
+
+  var game = new Chess();
+  var flipped = false;
+  var selected = null;
+  var legalFromSel = [];
+  var lastMove = null;
+  var hint = null;            // {from, to, san, color}
+  var engine = null, engineReady = false, engineFailed = false;
+  var searching = false, pendingSearch = false;
+  var searchFenTurn = "w";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var boardEl = $("board");
+
+  /* ---------- Board drawing ---------- */
+  function squareName(visRow, visCol) {
+    var file = flipped ? 7 - visCol : visCol;
+    var rank = flipped ? visRow + 1 : 8 - visRow;
+    return FILES[file] + rank;
+  }
+
+  function findKing(color) {
+    var rows = game.board();
+    for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++) {
+      var p = rows[r][c];
+      if (p && p.type === "k" && p.color === color) return FILES[c] + (8 - r);
+    }
+    return null;
+  }
+
+  function render() {
+    var checkSq = game.in_check() ? findKing(game.turn()) : null;
+    var html = "";
+    for (var vr = 0; vr < 8; vr++) {
+      for (var vc = 0; vc < 8; vc++) {
+        var sq = squareName(vr, vc);
+        var fileIdx = FILES.indexOf(sq[0]);
+        var rankNum = parseInt(sq[1], 10);
+        var light = (fileIdx + rankNum) % 2 === 1;
+        var cls = "sq " + (light ? "l" : "d");
+        if (lastMove && (lastMove.from === sq || lastMove.to === sq)) cls += " last";
+        if (selected === sq) cls += " sel";
+        if (hint && hint.from === sq) cls += " from-hint";
+        if (hint && hint.to === sq) cls += " to-hint";
+        if (checkSq === sq) cls += " check";
+        var piece = game.get(sq);
+        var inner = "";
+        if (vc === 0) inner += '<span class="coord r">' + rankNum + "</span>";
+        if (vr === 7) inner += '<span class="coord f">' + sq[0] + "</span>";
+        var target = legalFromSel.filter(function (m) { return m.to === sq; })[0];
+        if (target) inner += piece ? '<span class="ring"></span>' : '<span class="dot"></span>';
+        if (piece) inner += '<span class="piece ' + piece.color + '">' + GLYPH[piece.type] + "\uFE0E</span>";
+        var name = piece ? ((piece.color === "w" ? "white " : "black ") + piece.type + " on ") : "empty ";
+        html += '<div class="' + cls + '" data-sq="' + sq + '" role="gridcell" tabindex="0" aria-label="' + name + sq + '">' + inner + "</div>";
+      }
+    }
+    boardEl.innerHTML = html;
+    renderMoves();
+    renderStatus();
+  }
+
+  function renderMoves() {
+    var hist = game.history();
+    if (!hist.length) { $("moves").innerHTML = '<span class="empty">Moves will show here.</span>'; return; }
+    var out = "";
+    for (var i = 0; i < hist.length; i += 2) {
+      out += '<span class="n">' + (i / 2 + 1) + ".</span> " + hist[i] + (hist[i + 1] ? " " + hist[i + 1] : "");
+    }
+    var box = $("moves");
+    box.innerHTML = out;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function renderStatus() {
+    var el = $("status");
+    el.className = "status";
+    var side = game.turn() === "w" ? "White" : "Black";
+    if (game.in_checkmate()) { el.textContent = "Checkmate. " + (game.turn() === "w" ? "Black" : "White") + " wins."; el.className = "status alert"; return; }
+    if (game.in_stalemate()) { el.textContent = "Stalemate. Draw."; return; }
+    if (game.in_threefold_repetition()) { el.textContent = "Draw by repetition."; return; }
+    if (game.insufficient_material()) { el.textContent = "Draw. Not enough material."; return; }
+    if (game.in_draw()) { el.textContent = "Draw."; return; }
+    if (game.in_check()) { el.textContent = side + " is in check."; el.className = "status alert"; return; }
+    el.textContent = side + " to move.";
+  }
+
+  /* ---------- Input ---------- */
+  boardEl.addEventListener("click", function (e) {
+    var node = e.target.closest(".sq");
+    if (!node) return;
+    onSquare(node.getAttribute("data-sq"));
+  });
+  boardEl.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var node = e.target.closest(".sq");
+    if (!node) return;
+    e.preventDefault();
+    onSquare(node.getAttribute("data-sq"));
+  });
+
+  function onSquare(sq) {
+    if (game.game_over()) return;
+    var move = legalFromSel.filter(function (m) { return m.to === sq; })[0];
+    if (selected && move) {
+      var made = game.move({ from: selected, to: sq, promotion: "q" });
+      if (made) {
+        lastMove = { from: made.from, to: made.to };
+        selected = null; legalFromSel = []; hint = null;
+        clearSuggest();
+        camNeedRef = true;
+        render();
+        maybeAutoSuggest();
+        return;
+      }
+    }
+    var piece = game.get(sq);
+    if (piece && piece.color === game.turn()) {
+      selected = sq;
+      legalFromSel = game.moves({ square: sq, verbose: true });
+    } else {
+      selected = null; legalFromSel = [];
+    }
+    render();
+  }
+
+  /* ---------- Engine ---------- */
+  function initEngine() {
+    // Browsers block workers loaded from another site, so fetch the script and run it from a blob.
+    fetch(ENGINE_URL)
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function (code) {
+        var blob = new Blob([code], { type: "application/javascript" });
+        engine = new Worker(URL.createObjectURL(blob));
+        engine.onmessage = function (e) { onEngine(String(e.data)); };
+        engine.postMessage("uci");
+      })
+      .catch(function () {
+        engineFailed = true;
+        $("sLabel").textContent = "Engine failed to load. Check your internet and reload.";
+      });
+  }
+
+  function onEngine(line) {
+    if (line === "uciok") { engine.postMessage("isready"); return; }
+    if (line === "readyok") {
+      engineReady = true;
+      $("sLabel").textContent = "Ready. Make a move or tap Think.";
+      maybeAutoSuggest();
+      return;
+    }
+    if (line.indexOf("info") === 0 && line.indexOf(" pv ") > -1 && !pendingSearch) {
+      var d = /depth (\d+)/.exec(line);
+      var cp = /score cp (-?\d+)/.exec(line);
+      var mt = /score mate (-?\d+)/.exec(line);
+      var pv = /\spv ([a-h][1-8][a-h][1-8][qrbn]?)/.exec(line);
+      if (d) $("eDepth").textContent = "depth " + d[1];
+      if (cp || mt) showEval(cp ? parseInt(cp[1], 10) : null, mt ? parseInt(mt[1], 10) : null);
+      if (pv) showBest(pv[1]);
+      return;
+    }
+    if (line.indexOf("bestmove") === 0) {
+      searching = false;
+      if (pendingSearch) { pendingSearch = false; startSearch(); }
+      else {
+        renderLabel();
+        if (hint) { var hp = game.get(hint.from); logLine("new move sent to rendering engine: " + (hp ? PIECE_NAME[hp.type].toLowerCase() : "piece") + " " + hint.from + "->" + hint.to); }
+      }
+    }
+  }
+
+  function showEval(cp, mate) {
+    // Engine scores are from the side to move. Show from White's view.
+    var sign = searchFenTurn === "w" ? 1 : -1;
+    var text;
+    if (mate !== null) { text = (mate * sign > 0 ? "+" : "-") + "M" + Math.abs(mate); }
+    else { var v = (cp * sign) / 100; text = (v > 0 ? "+" : "") + v.toFixed(2); }
+    $("eVal").textContent = text;
+  }
+
+  function showBest(uci) {
+    var from = uci.slice(0, 2), to = uci.slice(2, 4), promo = uci.length > 4 ? uci[4] : undefined;
+    var tmp = new Chess(game.fen());
+    var m = tmp.move({ from: from, to: to, promotion: promo });
+    if (!m) return;
+    var changed = !hint || hint.from !== from || hint.to !== to;
+    hint = { from: from, to: to, san: m.san, color: searchFenTurn };
+    $("sMove").textContent = m.san;
+    $("sMove").className = "move" + (isMyTurnColor(searchFenTurn) ? "" : " opp");
+    renderLabel();
+    if (changed) render();
+  }
+
+  function renderLabel() {
+    if (!hint) return;
+    var mine = isMyTurnColor(hint.color);
+    var who = hint.color === "w" ? "White" : "Black";
+    $("sLabel").textContent = (mine ? "Your best move" : who + "'s best move") + (searching ? " (thinking…)" : "");
+  }
+
+  function clearSuggest() {
+    hint = null;
+    $("sMove").textContent = "—";
+    $("sMove").className = "move";
+    $("eVal").textContent = "0.0";
+    $("eDepth").textContent = "depth 0";
+    if (engineReady) $("sLabel").textContent = "Ready.";
+  }
+
+  function isMyTurnColor(color) { return color === $("selSide").value; }
+
+  function startSearch() {
+    if (!engineReady || game.game_over()) return;
+    searching = true;
+    searchFenTurn = game.turn();
+    engine.postMessage("position fen " + game.fen());
+    engine.postMessage("go depth " + $("selDepth").value);
+    $("sLabel").textContent = "Thinking…";
+    logLine("query stockfish with board positioning");
+  }
+
+  function think() {
+    if (engineFailed) return;
+    if (!engineReady) { $("sLabel").textContent = "Engine is still loading…"; return; }
+    if (game.game_over()) return;
+    if (searching) { pendingSearch = true; engine.postMessage("stop"); }
+    else startSearch();
+  }
+
+  function maybeAutoSuggest() {
+    var mode = $("selAuto").value;
+    if (mode === "off") return;
+    if (mode === "mine" && game.turn() !== $("selSide").value) return;
+    think();
+  }
+
+  /* ---------- Buttons ---------- */
+  $("btnUndo").addEventListener("click", function () {
+    game.undo();
+    var h = game.history({ verbose: true });
+    lastMove = h.length ? { from: h[h.length - 1].from, to: h[h.length - 1].to } : null;
+    selected = null; legalFromSel = []; clearSuggest(); camNeedRef = true; render();
+    if (searching) { pendingSearch = false; engine.postMessage("stop"); }
+    maybeAutoSuggest();
+  });
+  $("btnFlip").addEventListener("click", function () { flipped = !flipped; render(); });
+  $("btnNew").addEventListener("click", function () {
+    if (game.history().length && !confirm("Start a new game?")) return;
+    game = new Chess();
+    selected = null; legalFromSel = []; lastMove = null; clearSuggest();
+    if (searching) { pendingSearch = false; engine.postMessage("stop"); }
+    render(); maybeAutoSuggest();
+  });
+  $("btnHint").addEventListener("click", think);
+  $("selSide").addEventListener("change", function () {
+    flipped = $("selSide").value === "b";
+    render(); maybeAutoSuggest();
+  });
+  $("selAuto").addEventListener("change", maybeAutoSuggest);
+
+  /* ---------- Camera ---------- */
+  var camNeedRef = false;
+  var cam = { stream: null, timer: null, pts: [], rot: 0, ref: null, prev: null, stable: 0, W: 0, H: 0, Hm: null, vw: 0, vh: 0,
+              auto: false, autoStart: 0, lastScan: 0, lastDet: null, autoPts: false, lastFit: 0, lowFit: 0, refound: false };
+  var video = $("camVideo"), overlay = $("camOverlay"), octx = overlay.getContext("2d");
+  var work = document.createElement("canvas");
+  var wctx = work.getContext("2d", { willReadFrequently: true });
+  var pctx = $("camPreview").getContext("2d");
+  var CORNER = ["top-left", "top-right", "bottom-right", "bottom-left"];
+
+  var logLines = [];
+  function logLine(t) {
+    var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; };
+    logLines.push("[" + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()) + "] " + t);
+    if (logLines.length > 4) logLines.shift();
+    $("camLog").textContent = logLines.join("\n");
+  }
+  function camMsg(t) { $("camMsg").textContent = t; }
+  function sens() { return parseInt($("camSens").value, 10); }
+
+  function openCamera() {
+    $("cam").hidden = false;
+    $("btnCam").textContent = "Close camera";
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      camMsg("This browser can't open the camera. Use Chrome or Safari and open the page over https.");
+      return;
+    }
+    camMsg("Opening camera…");
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    }).then(function (s) {
+      cam.stream = s;
+      video.srcObject = s;
+      return video.play();
+    }).then(function () {
+      camMsg("Looking for the board. Hold the phone steady above it so the whole board is in view.");
+      cam.auto = true; cam.autoStart = Date.now(); cam.lastDet = null; cam.refound = false;
+      cam.timer = setInterval(tick, 200);
+    }).catch(function (err) {
+      cam.stream = null;
+      camMsg(err && err.name === "NotAllowedError"
+        ? "Camera is blocked. Allow camera access for this site in your browser settings, then tap Open camera again."
+        : "Couldn't open the camera: " + ((err && err.message) || err));
+    });
+  }
+
+  function closeCamera() {
+    if (cam.timer) clearInterval(cam.timer);
+    if (cam.stream) cam.stream.getTracks().forEach(function (t) { t.stop(); });
+    video.srcObject = null;
+    cam.stream = null; cam.timer = null; cam.pts = []; cam.rot = 0; cam.ref = null; cam.prev = null; cam.Hm = null; cam.vw = 0;
+    cam.auto = false; cam.autoPts = false; cam.lastDet = null; cam.refound = false;
+    $("cam").hidden = true;
+    $("btnCam").textContent = "Open camera";
+  }
+
+  $("btnCam").addEventListener("click", function () {
+    if ($("cam").hidden) openCamera(); else closeCamera();
+  });
+
+  function fitView() {
+    var vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw) return;
+    overlay.width = vw; overlay.height = vh;
+    var v = $("camView");
+    var frac = $("camBig").checked ? 0.62 : 0.36;
+    var w = Math.min($("cam").clientWidth - 20, window.innerHeight * frac * (vw / vh));
+    v.style.width = Math.max(120, w) + "px";
+    v.style.aspectRatio = vw + " / " + vh;
+  }
+
+  overlay.addEventListener("click", function (e) {
+    if (!cam.stream || cam.pts.length >= 4) return;
+    cam.auto = false; cam.autoPts = false;
+    var r = overlay.getBoundingClientRect();
+    cam.pts.push([(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]);
+    if (cam.pts.length === 4) {
+      cam.rot = 0; cam.ref = null; cam.prev = null;
+      camMsg("Check the small board. a1 should be at the bottom-left, with White at the bottom. Tap Rotate if not. Then set up the starting position and tap Set start.");
+    } else {
+      camMsg("Corner " + (cam.pts.length + 1) + " of 4: tap the " + CORNER[cam.pts.length] + " corner.");
+    }
+    drawOverlay();
+  });
+
+  $("camReset").addEventListener("click", function () {
+    cam.pts = []; cam.rot = 0; cam.ref = null; cam.prev = null; cam.Hm = null;
+    cam.auto = true; cam.autoStart = Date.now(); cam.lastDet = null; cam.autoPts = false; cam.refound = false;
+    camMsg("Looking for the board. Hold the phone steady. You can also tap its 4 corners yourself, top-left first.");
+    drawOverlay();
+  });
+  $("camRotate").addEventListener("click", function () {
+    if (cam.pts.length < 4) return;
+    cam.rot = (cam.rot + 1) % 4; cam.ref = null; cam.prev = null;
+    camMsg("Rotated. White should be at the bottom of the small board. Tap Set start when the pieces are in the starting position.");
+  });
+  $("camStart").addEventListener("click", function () {
+    if (cam.pts.length < 4) { camMsg("Tap the 4 board corners first."); return; }
+    game = new Chess();
+    selected = null; legalFromSel = []; lastMove = null; clearSuggest();
+    if (searching) { pendingSearch = false; engine.postMessage("stop"); }
+    camNeedRef = true; cam.ref = null; cam.stable = 0;
+    render(); maybeAutoSuggest();
+    camMsg("Hold still. Taking the starting picture…");
+  });
+  $("camSync").addEventListener("click", function () {
+    if (cam.pts.length < 4) return;
+    camNeedRef = true; cam.stable = 0;
+    camMsg("Hold still. Matching the camera to the current position…");
+  });
+
+  /* Perspective math: map the board's corners to an 8x8 grid */
+  function solveH(s, d) {
+    var A = [], b = [], i, j, c, r, k, n = 8;
+    for (i = 0; i < 4; i++) {
+      var u = s[i][0], v = s[i][1], x = d[i][0], y = d[i][1];
+      A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]); b.push(x);
+      A.push([0, 0, 0, u, v, 1, -u * y, -v * y]); b.push(y);
+    }
+    for (c = 0; c < n; c++) {
+      var p = c;
+      for (r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+      var t = A[c]; A[c] = A[p]; A[p] = t;
+      var tb = b[c]; b[c] = b[p]; b[p] = tb;
+      if (Math.abs(A[c][c]) < 1e-12) return null;
+      for (r = c + 1; r < n; r++) {
+        var f = A[r][c] / A[c][c];
+        for (k = c; k < n; k++) A[r][k] -= f * A[c][k];
+        b[r] -= f * b[c];
+      }
+    }
+    var h = new Array(n);
+    for (i = n - 1; i >= 0; i--) {
+      var sum = b[i];
+      for (j = i + 1; j < n; j++) sum -= A[i][j] * h[j];
+      h[i] = sum / A[i][i];
+    }
+    return h;
+  }
+  function applyH(h, u, v) {
+    var w = h[6] * u + h[7] * v + 1;
+    return [(h[0] * u + h[1] * v + h[2]) / w, (h[3] * u + h[4] * v + h[5]) / w];
+  }
+  function buildH() {
+    var unit = [[0, 0], [8, 0], [8, 8], [0, 8]], dst = [];
+    for (var i = 0; i < 4; i++) {
+      var p = cam.pts[(i + cam.rot) % 4];
+      dst.push([p[0] * cam.W, p[1] * cam.H]);
+    }
+    cam.Hm = solveH(unit, dst);
+  }
+
+  /* Sample an 8x8 patch of pixels from the middle of every square */
+  function extract(img) {
+    var d = img.data, W = img.width, H = img.height;
+    var out = new Float32Array(64 * 64 * 3), o = 0;
+    for (var r = 0; r < 8; r++) for (var c = 0; c < 8; c++)
+      for (var i = 0; i < 8; i++) for (var j = 0; j < 8; j++) {
+        var p = applyH(cam.Hm, c + 0.2 + 0.6 * (j + 0.5) / 8, r + 0.2 + 0.6 * (i + 0.5) / 8);
+        var x = Math.min(W - 1, Math.max(0, Math.round(p[0])));
+        var y = Math.min(H - 1, Math.max(0, Math.round(p[1])));
+        var k = (y * W + x) * 4;
+        out[o++] = d[k]; out[o++] = d[k + 1]; out[o++] = d[k + 2];
+      }
+    return out;
+  }
+  function meanAbs(a, b) {
+    var s = 0;
+    for (var i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
+    return s / a.length;
+  }
+  function squareDiffs(a, b) {
+    var diffs = [], i, k;
+    for (i = 0; i < 64; i++) {
+      var s = 0;
+      for (k = i * 192; k < i * 192 + 192; k++) s += Math.abs(a[k] - b[k]);
+      diffs.push(s / 192);
+    }
+    // Remove the overall brightness shift so lighting changes don't look like moves
+    var med = diffs.slice().sort(function (x, y) { return x - y; })[32];
+    return diffs.map(function (v) { return Math.max(0, v - med); });
+  }
+
+  function sqIdx(name) { return (8 - parseInt(name[1], 10)) * 8 + FILES.indexOf(name[0]); }
+  function expectedSquares(m) {
+    var rank = m.from[1], e = [sqIdx(m.from), sqIdx(m.to)];
+    if (m.flags.indexOf("e") > -1) e.push(sqIdx(m.to[0] + rank));
+    if (m.flags.indexOf("k") > -1) { e.push(sqIdx("h" + rank)); e.push(sqIdx("f" + rank)); }
+    if (m.flags.indexOf("q") > -1) { e.push(sqIdx("a" + rank)); e.push(sqIdx("d" + rank)); }
+    return e;
+  }
+
+  function tryMatch(diffs) {
+    var t = sens(), changed = 0, i;
+    for (i = 0; i < 64; i++) if (diffs[i] >= t) changed++;
+    if (changed < 2) return { status: "none" };
+    var seen = {}, best = null;
+    game.moves({ verbose: true }).forEach(function (m) {
+      var key = m.from + m.to;
+      if (seen[key]) return;
+      seen[key] = true;
+      var exp = expectedSquares(m), isExp = {}, expMin = 1e9, unexp = 0;
+      exp.forEach(function (x) { isExp[x] = true; if (diffs[x] < expMin) expMin = diffs[x]; });
+      for (var s = 0; s < 64; s++) if (!isExp[s] && diffs[s] > unexp) unexp = diffs[s];
+      var score = expMin - unexp;
+      if (!best || score > best.score) best = { m: m, score: score, expMin: expMin, unexp: unexp };
+    });
+    if (best && best.expMin >= t * 0.7 && best.unexp < t) return { status: "ok", move: best.m };
+    return { status: "nomatch" };
+  }
+
+  function cornerShift(a, b) {
+    var m = 0;
+    for (var i = 0; i < 4; i++) m = Math.max(m, Math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]));
+    return m;
+  }
+
+  function autoScan() {
+    cam.lastScan = Date.now();
+    wctx.drawImage(video, 0, 0, cam.W, cam.H);
+    var img = wctx.getImageData(0, 0, cam.W, cam.H);
+    var det = window.ChessBoardFinder.detect(img.data, cam.W, cam.H);
+    if (!det) {
+      cam.lastDet = null;
+      if (Date.now() - cam.autoStart > 10000) camMsg("I can't find the board. Hold the phone steady, fill the screen with the board, avoid glare, or tap the 4 corners yourself.");
+      return;
+    }
+    // accept only when two scans in a row agree
+    if (cam.lastDet && cornerShift(cam.lastDet.pts, det.pts) < 0.03) {
+      cam.pts = det.pts; cam.rot = det.rot; cam.ref = null; cam.prev = null;
+      cam.auto = false; cam.autoPts = true; cam.lowFit = 0; cam.lastFit = Date.now();
+      if (cam.refound) {
+        cam.refound = false; camNeedRef = true; cam.stable = 0;
+        camMsg("Found the board again. Hold still while I match the camera to the position.");
+      } else if (det.orientSure) {
+        camMsg("Board found. Check the small board: a1 at the bottom-left, White at the bottom (tap Rotate if not). Set up the starting position, then tap Set start.");
+      } else {
+        camMsg("Board found, but I can't tell which side is White. Tap Rotate until White is at the bottom of the small board, then tap Set start.");
+      }
+      logLine("board detected");
+      return;
+    }
+    cam.lastDet = det;
+  }
+
+  function tick() {
+    if (!cam.stream || video.readyState < 2 || !video.videoWidth) return;
+    var vw = video.videoWidth, vh = video.videoHeight;
+    if (vw !== cam.vw || vh !== cam.vh) { cam.vw = vw; cam.vh = vh; fitView(); }
+    var W = Math.min(640, vw), H = Math.round(W * vh / vw);
+    if (work.width !== W || work.height !== H) { work.width = W; work.height = H; }
+    cam.W = W; cam.H = H;
+    if (cam.pts.length < 4) {
+      if (cam.auto && Date.now() - cam.lastScan > 600) autoScan();
+      drawOverlay(); return;
+    }
+
+    wctx.drawImage(video, 0, 0, W, H);
+    var img = wctx.getImageData(0, 0, W, H);
+    buildH();
+    if (!cam.Hm) return;
+    var cur = extract(img);
+    var motion = cam.prev ? meanAbs(cur, cam.prev) : 99;
+    cam.prev = cur;
+    cam.stable = motion < 4 ? cam.stable + 1 : 0;
+
+    if (camNeedRef && cam.stable >= 3) {
+      cam.ref = cur; camNeedRef = false;
+      camMsg("Tracking. Make a move on the board and hold still for a second.");
+    }
+    var diffs = cam.ref ? squareDiffs(cur, cam.ref) : null;
+    drawPreview(img, diffs);
+    drawOverlay();
+
+    // If the phone got bumped the grid stops matching the board, so look for it again
+    if (cam.autoPts && cam.stable >= 3 && Date.now() - cam.lastFit > 1500) {
+      cam.lastFit = Date.now();
+      var fit = window.ChessBoardFinder.fit(img.data, W, H, cam.pts);
+      cam.lowFit = fit < 0.25 ? cam.lowFit + 1 : 0;
+      if (cam.lowFit >= 4) {
+        cam.pts = []; cam.Hm = null; cam.ref = null; cam.autoPts = false;
+        cam.auto = true; cam.autoStart = Date.now(); cam.lastDet = null; cam.refound = true;
+        camMsg("The board moved. Looking for it again…");
+        return;
+      }
+    }
+
+    if (!cam.ref || camNeedRef || !$("camTrack").checked || game.game_over()) return;
+    if (cam.stable < 4) return;
+    var res = tryMatch(diffs);
+    if (res.status === "ok") {
+      var m = res.move;
+      var made = game.move({ from: m.from, to: m.to, promotion: "q" });
+      if (made) {
+        lastMove = { from: made.from, to: made.to };
+        selected = null; legalFromSel = []; hint = null;
+        clearSuggest();
+        cam.ref = cur;
+        render();
+        camMsg("Saw " + made.san + ".");
+        logLine((made.color === "w" ? "white" : "black") + " move confirmed: " + PIECE_NAME[made.piece].toLowerCase() + " " + made.from + "->" + made.to + (made.captured ? " (takes " + PIECE_NAME[made.captured].toLowerCase() + ")" : ""));
+        maybeAutoSuggest();
+      }
+    } else if (res.status === "nomatch") {
+      camMsg("I see a change, but no legal move fits it. Put the pieces back, or fix them and tap Sync.");
+    }
+  }
+
+  function drawOverlay() {
+    var w = overlay.width, h = overlay.height;
+    if (!w) return;
+    octx.clearRect(0, 0, w, h);
+    var lw = Math.max(2, w / 220), P = cam.pts, i;
+    octx.lineWidth = lw; octx.strokeStyle = "#f2c14e"; octx.fillStyle = "#f2c14e";
+    octx.font = "bold " + Math.round(lw * 7) + "px sans-serif";
+    if (P.length > 1) {
+      octx.beginPath();
+      for (i = 0; i < P.length; i++) {
+        if (i === 0) octx.moveTo(P[i][0] * w, P[i][1] * h); else octx.lineTo(P[i][0] * w, P[i][1] * h);
+      }
+      if (P.length === 4) octx.closePath();
+      octx.stroke();
+    }
+    for (i = 0; i < P.length; i++) {
+      octx.beginPath(); octx.arc(P[i][0] * w, P[i][1] * h, lw * 2.4, 0, 6.2832); octx.fill();
+      octx.fillText(String(i + 1), P[i][0] * w + lw * 4, P[i][1] * h - lw * 3);
+    }
+    if (P.length === 4 && cam.Hm && cam.W) {
+      drawAR(lw);
+      octx.strokeStyle = "rgba(94,224,138,.55)"; octx.lineWidth = Math.max(1, lw / 3);
+      for (var k = 0; k <= 8; k++) {
+        var a = applyH(cam.Hm, k, 0), b = applyH(cam.Hm, k, 8), c = applyH(cam.Hm, 0, k), d = applyH(cam.Hm, 8, k);
+        octx.beginPath(); octx.moveTo(a[0] * w / cam.W, a[1] * h / cam.H); octx.lineTo(b[0] * w / cam.W, b[1] * h / cam.H); octx.stroke();
+        octx.beginPath(); octx.moveTo(c[0] * w / cam.W, c[1] * h / cam.H); octx.lineTo(d[0] * w / cam.W, d[1] * h / cam.H); octx.stroke();
+      }
+    }
+  }
+
+  var PIECE_NAME = { k: "KING", q: "QUEEN", r: "ROOK", b: "BISHOP", n: "KNIGHT", p: "PAWN" };
+
+  function toOverlay(u, v) {
+    var q = applyH(cam.Hm, u, v);
+    return [q[0] * overlay.width / cam.W, q[1] * overlay.height / cam.H];
+  }
+  function sqCorners(name) {
+    var c = FILES.indexOf(name[0]), r = 8 - parseInt(name[1], 10);
+    return [toOverlay(c, r), toOverlay(c + 1, r), toOverlay(c + 1, r + 1), toOverlay(c, r + 1)];
+  }
+  function sqCenter(name) {
+    var c = FILES.indexOf(name[0]), r = 8 - parseInt(name[1], 10);
+    return toOverlay(c + 0.5, r + 0.5);
+  }
+  function tracePoly(pts) {
+    octx.beginPath();
+    octx.moveTo(pts[0][0], pts[0][1]);
+    for (var i = 1; i < pts.length; i++) octx.lineTo(pts[i][0], pts[i][1]);
+    octx.closePath();
+  }
+
+  function drawAR(lw) {
+    var w = overlay.width, h = overlay.height;
+    // Glowing board outline
+    octx.save();
+    octx.shadowColor = "#27e1ff"; octx.shadowBlur = lw * 4;
+    octx.strokeStyle = "#27e1ff"; octx.lineWidth = lw * 1.4;
+    tracePoly([toOverlay(0, 0), toOverlay(8, 0), toOverlay(8, 8), toOverlay(0, 8)]);
+    octx.stroke();
+    octx.restore();
+
+    if (!hint || game.game_over()) return;
+
+    // Green squares for the suggested move
+    [hint.from, hint.to].forEach(function (sq) {
+      var poly = sqCorners(sq);
+      tracePoly(poly);
+      octx.fillStyle = "rgba(60,220,90,.42)"; octx.fill();
+      octx.strokeStyle = "#5ee08a"; octx.lineWidth = lw * 1.2; octx.stroke();
+    });
+
+    // Arrow from the piece to its target
+    var a = sqCenter(hint.from), b = sqCenter(hint.to);
+    var ang = Math.atan2(b[1] - a[1], b[0] - a[0]), head = lw * 6;
+    octx.strokeStyle = "rgba(94,224,138,.95)"; octx.fillStyle = "rgba(94,224,138,.95)"; octx.lineWidth = lw * 1.6;
+    octx.beginPath(); octx.moveTo(a[0], a[1]); octx.lineTo(b[0] - Math.cos(ang) * head * .6, b[1] - Math.sin(ang) * head * .6); octx.stroke();
+    octx.beginPath();
+    octx.moveTo(b[0], b[1]);
+    octx.lineTo(b[0] - head * Math.cos(ang - .45), b[1] - head * Math.sin(ang - .45));
+    octx.lineTo(b[0] - head * Math.cos(ang + .45), b[1] - head * Math.sin(ang + .45));
+    octx.closePath(); octx.fill();
+
+    // Label
+    var piece = game.get(hint.from);
+    var name = piece ? PIECE_NAME[piece.type] : "MOVE";
+    var line2 = name + "  " + hint.from + " \u2192 " + hint.to;
+    var f1 = Math.round(lw * 4.2), f2 = Math.round(lw * 6.6), pad = lw * 3;
+    octx.font = "bold " + f2 + "px sans-serif";
+    var tw = octx.measureText(line2).width;
+    var bw = tw + pad * 2, bh = f1 + f2 + pad * 2.4;
+    var bx = Math.min(w - bw - 4, Math.max(4, b[0] - bw / 2));
+    var by = Math.min(h - bh - 4, Math.max(4, b[1] - bh - lw * 10));
+    octx.fillStyle = "rgba(8,20,14,.88)";
+    octx.fillRect(bx, by, bw, bh);
+    octx.strokeStyle = "#5ee08a"; octx.lineWidth = lw * .8; octx.strokeRect(bx, by, bw, bh);
+    octx.fillStyle = "#8fbf9f"; octx.font = "bold " + f1 + "px sans-serif";
+    octx.fillText(isMyTurnColor(hint.color) ? "NEXT MOVE" : "THEIR LIKELY MOVE", bx + pad, by + pad + f1 * .85);
+    octx.fillStyle = "#5ee08a"; octx.font = "bold " + f2 + "px sans-serif";
+    octx.fillText(line2, bx + pad, by + pad * 1.4 + f1 + f2 * .85);
+  }
+
+  var prevImg = null;
+  function drawPreview(img, diffs) {
+    var S = 160, d = img.data, W = img.width, H = img.height;
+    if (!prevImg) prevImg = pctx.createImageData(S, S);
+    var o = prevImg.data;
+    for (var y = 0; y < S; y++) for (var x = 0; x < S; x++) {
+      var p = applyH(cam.Hm, x / S * 8, y / S * 8);
+      var sx = Math.min(W - 1, Math.max(0, Math.round(p[0]))), sy = Math.min(H - 1, Math.max(0, Math.round(p[1])));
+      var k = (sy * W + sx) * 4, q = (y * S + x) * 4;
+      o[q] = d[k]; o[q + 1] = d[k + 1]; o[q + 2] = d[k + 2]; o[q + 3] = 255;
+    }
+    pctx.putImageData(prevImg, 0, 0);
+    var cell = S / 8, t = sens(), i;
+    if (diffs) {
+      pctx.fillStyle = "rgba(242,193,78,.5)";
+      for (i = 0; i < 64; i++) if (diffs[i] >= t) pctx.fillRect((i % 8) * cell, Math.floor(i / 8) * cell, cell, cell);
+    }
+    pctx.strokeStyle = "rgba(255,255,255,.45)"; pctx.lineWidth = 1;
+    for (i = 0; i <= 8; i++) {
+      pctx.beginPath(); pctx.moveTo(i * cell, 0); pctx.lineTo(i * cell, S); pctx.stroke();
+      pctx.beginPath(); pctx.moveTo(0, i * cell); pctx.lineTo(S, i * cell); pctx.stroke();
+    }
+    pctx.font = "bold 11px sans-serif"; pctx.fillStyle = "#fff"; pctx.strokeStyle = "#000"; pctx.lineWidth = 3;
+    pctx.strokeText("a1", 3, S - 4); pctx.fillText("a1", 3, S - 4);
+    pctx.strokeText("h8", S - 20, 12); pctx.fillText("h8", S - 20, 12);
+  }
+
+  window.addEventListener("resize", function () { if (cam.stream) fitView(); });
+  $("camBig").addEventListener("change", function () { if (cam.stream) fitView(); });
+
+  render();
+  initEngine();
+})();
+</script>
+</body>
+</html>
