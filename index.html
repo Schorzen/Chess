@@ -5,63 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéVault</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0b0d17;--panel:#151a2e;--line:#242b4a;--text:#eef1ff;--mut:#8b93b8;--acc:#7c5cff;
---common:#8b93b8;--rare:#38bdf8;--epic:#a855f7;--legendary:#fbbf24}
-*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:Outfit,system-ui,sans-serif}
-body{min-height:100vh;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom));
-background:radial-gradient(600px 300px at 50% -50px,#2a1f6b55,transparent)}
-header{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
-h1{font-size:22px;font-weight:800;letter-spacing:-.5px}h1 span{color:var(--acc)}
-.pill{background:var(--panel);border:1px solid var(--line);padding:6px 12px;border-radius:99px;font-size:13px;color:var(--mut)}
-.hero{text-align:center;padding:28px 16px;border-radius:24px;background:linear-gradient(160deg,#1c2250,#151a2e);border:1px solid var(--line)}
-.pack{width:130px;height:180px;margin:0 auto 20px;border-radius:16px;background:linear-gradient(135deg,#7c5cff,#38bdf8);
-display:grid;place-items:center;box-shadow:0 20px 50px #7c5cff55;animation:float 3s ease-in-out infinite}
-.pack svg{width:56px;height:56px;stroke:#fff}
-@keyframes float{50%{transform:translateY(-8px) rotate(1deg)}}
-.dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
-.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--acc)}
-button.go{width:100%;border:0;border-radius:16px;padding:16px;font:800 17px Outfit;color:#fff;background:var(--acc);cursor:pointer}
-button.go:disabled{background:var(--line);color:var(--mut)}
-.sub{color:var(--mut);font-size:13px}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0b0d17ee;backdrop-filter:blur(14px);
-border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom));gap:8px}
-nav button{flex:1;background:none;border:0;color:var(--mut);font:600 12px Outfit;display:grid;gap:4px;justify-items:center;padding:6px;cursor:pointer}
-nav button svg{width:24px;height:24px}nav button.on{color:#fff}nav button.on svg{stroke:var(--acc)}
-svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden;margin:10px 0 16px}.bar div{height:100%;background:var(--acc);transition:.4s}
-.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px}
-.chips button{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:99px;font:600 13px Outfit}
-.chips button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
-.card{position:relative;border-radius:16px;padding:10px;background:linear-gradient(160deg,#1d2447,#12162b);border:2px solid var(--c);
-box-shadow:0 0 18px -6px var(--c);overflow:hidden}
-.card.common{--c:var(--common)}.card.rare{--c:var(--rare)}.card.epic{--c:var(--epic)}.card.legendary{--c:var(--legendary)}
-.card.epic::after,.card.legendary::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;
-background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);background-size:250% 100%;animation:shine 3s linear infinite}
-@keyframes shine{from{background-position:200% 0}to{background-position:-100% 0}}
-.top{display:flex;justify-content:space-between;font-size:13px;text-transform:capitalize}.top span{color:var(--mut)}
-.art{aspect-ratio:1;display:grid;place-items:center}.art img{width:92%;filter:drop-shadow(0 8px 10px #0008)}
-.meta{display:flex;gap:4px;flex-wrap:wrap}.t{font-style:normal;font-size:10px;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:#ffffff14}
-.st{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:6px}
-.rt{position:absolute;right:10px;bottom:28px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--c);font-style:normal;font-weight:800}
-.x{position:absolute;left:8px;bottom:26px;font-size:11px;background:var(--acc);padding:1px 7px;border-radius:99px;text-decoration:none}
-.empty{border:2px dashed var(--line);border-radius:16px;aspect-ratio:3/4;display:grid;place-items:center;color:var(--line);font-weight:800;font-size:20px}
-#ov{position:fixed;inset:0;background:#05060cf2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:16px;z-index:9;overflow:auto}
-#ov.show{display:flex}.pull{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:520px}
-.flip{perspective:800px;cursor:pointer}.flip .in{position:relative;transition:transform .6s;transform-style:preserve-3d}
-.flip.open .in{transform:rotateY(180deg)}
-.flip .back,.flip .front{backface-visibility:hidden}
-.flip .back{position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,#7c5cff,#38bdf8);display:grid;place-items:center;font-weight:800;font-size:26px}
-.flip .front{transform:rotateY(180deg)}
-.flip .front .card{font-size:11px}.flip .front .st,.flip .front .meta{display:none}
-#auth{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;gap:12px;padding:24px;z-index:20;max-width:420px;margin:auto}
-#auth.show{display:flex}
-#auth input{width:100%;padding:15px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 16px Outfit}
-#auth a{color:var(--acc);text-align:center;font-size:14px;cursor:pointer}#err{color:#f87171;font-size:13px;min-height:18px}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header><h1>Poké<span>Vault</span></h1><div style="display:flex;gap:8px"><div class="pill" id="count"></div><button class="pill" id="so" style="display:none;font-family:inherit" onclick="cloud.out()">Sign out</button></div></header>
@@ -73,85 +17,13 @@ background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);bac
 <input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password">
 <div id="err"></div><button class="go" id="sb" onclick="cloud.submit()">Sign in</button>
 <a id="sw" onclick="cloud.toggle()">New here? Create account</a></div>
+<div id="verify"><h1 style="font-size:28px">Verify your email</h1><p class="sub">We sent a link to <b id="vm"></b>. Open it, then come back here.</p><div id="vmsg" class="sub"></div>
+<button class="go" onclick="cloud.check()">I've verified</button><button class="pill" style="font-family:inherit;padding:14px" onclick="cloud.resend()">Resend email</button><a onclick="cloud.out()">Sign out</a></div>
 <nav>
 <button id="n1" onclick="go('home')"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M12 8v4M10 10h4"/></svg>Packs</button>
 <button id="n2" onclick="go('col')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Collection</button>
 </nav>
-<script>
-const MAX=5,REGEN=10*60*1000,TOTAL=151,KEY="pokevault_v1";
-let S=JSON.parse(localStorage.getItem(KEY)||"null")||{packs:MAX,t:Date.now(),col:{}};
-let view="home",filter="all",pending=[];
-const save=()=>{localStorage.setItem(KEY,JSON.stringify(S));window.cloudSave&&window.cloudSave(S)};
-window.getState=()=>S;window.setState=s=>{S=s;save();render()};
-const cap=s=>s[0].toUpperCase()+s.slice(1);
-const img=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-const rar=b=>b<320?"common":b<430?"rare":b<520?"epic":"legendary";
-function regen(){const n=Date.now();if(S.packs>=MAX){S.t=n;return}
-const g=Math.floor((n-S.t)/REGEN);if(g>0){S.packs=Math.min(MAX,S.packs+g);S.t=S.packs>=MAX?n:S.t+g*REGEN;save()}}
-function cardHTML(p,n){return `<div class="card ${p.rar}"><div class="top"><b>${cap(p.name)}</b><span>HP ${p.hp}</span></div>
-<div class="art"><img loading="lazy" src="${img(p.id)}" alt="${p.name}"></div>
-<div class="meta">${p.types.map(t=>`<i class="t">${t}</i>`).join("")}</div>
-<div class="st"><span>ATK ${p.atk}</span><span>DEF ${p.def}</span></div><em class="rt">${p.rar}</em>${n>1?`<u class="x">x${n}</u>`:""}</div>`}
-async function getP(id){const j=await(await fetch("https://pokeapi.co/api/v2/pokemon/"+id)).json();
-const s=j.stats.map(x=>x.base_stat),b=s.reduce((a,c)=>a+c,0);
-return{id,name:j.name,types:j.types.map(t=>t.type.name),hp:s[0],atk:s[1],def:s[2],rar:rar(b)}}
-async function openPack(){regen();if(S.packs<1)return;S.packs--;save();render();
-const ids=[];while(ids.length<5){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
-const ov=document.getElementById("ov");document.getElementById("pull").innerHTML="<p class='sub'>Opening…</p>";ov.classList.add("show");
-try{pending=await Promise.all(ids.map(getP))}catch(e){S.packs++;save();ov.classList.remove("show");alert("No connection. Try again.");render();return}
-document.getElementById("pull").innerHTML=pending.map(p=>`<div class="flip" onclick="this.classList.add('open')"><div class="in"><div class="back">?</div><div class="front">${cardHTML(p,1)}</div></div></div>`).join("");
-document.querySelectorAll(".flip .in").forEach(e=>e.style.minHeight=e.querySelector(".card").offsetHeight+"px");}
-function closeOv(){pending.forEach(p=>{const o=S.col[p.id];S.col[p.id]=o?{...o,n:o.n+1}:{...p,n:1}});pending=[];save();
-document.getElementById("ov").classList.remove("show");render()}
-function go(v){view=v;render()}
-function render(){regen();const owned=Object.keys(S.col).length;
-document.getElementById("count").textContent=owned+" / "+TOTAL;
-n1.classList.toggle("on",view=="home");n2.classList.toggle("on",view=="col");
-const app=document.getElementById("app");
-if(view=="home"){const mins=Math.max(1,Math.ceil((REGEN-(Date.now()-S.t))/60000));
-app.innerHTML=`<section class="hero"><div class="pack"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.500-.5z"/></svg></div>
-<h2>Gen 1 Booster</h2><p class="sub">5 random cards per pack</p><div class="dots">${Array.from({length:MAX},(_,i)=>`<i class="${i<S.packs?"on":""}"></i>`).join("")}</div>
-<p class="sub" style="margin-bottom:16px">${S.packs>=MAX?"Packs full":"Next pack in ~"+mins+" min"}</p>
-<button class="go" ${S.packs<1?"disabled":""} onclick="openPack()">Open pack</button></section>`}
-else{const list=Object.values(S.col);const cards=filter=="all"?null:filter;
-const chips=["all","common","rare","epic","legendary"].map(f=>`<button class="${filter==f?"on":""}" onclick="filter='${f}';render()">${cap(f)}</button>`).join("");
-let html=`<div class="bar"><div style="width:${owned/TOTAL*100}%"></div></div><div class="chips">${chips}</div><div class="grid">`;
-for(let i=1;i<=TOTAL;i++){const p=S.col[i];
-if(p&&(!cards||p.rar==cards))html+=cardHTML(p,p.n);else if(!p&&!cards)html+=`<div class="empty">#${String(i).padStart(3,"0")}</div>`}
-app.innerHTML=html+"</div>"}}
-render();setInterval(()=>{if(view=="home"&&!pending.length)render()},30000);
-</script>
-<script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-const cfg={apiKey:"AIzaSyCkiiYyPINqFW98QnvFUou7zUYtq2Dz-5k",authDomain:"pokevault-6dae1.firebaseapp.com",projectId:"pokevault-6dae1",storageBucket:"pokevault-6dae1.firebasestorage.app",messagingSenderId:"1042434349246",appId:"1:1042434349246:web:0e95b8fb980f5c30e526ef"};
-const auth=getAuth(initializeApp(cfg)),db=getFirestore();
-const $=id=>document.getElementById(id);
-let uid=null,timer,up=false;
-window.cloudSave=s=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(()=>
- setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,count:Object.keys(s.col).length,
- name:auth.currentUser?.displayName||"Trainer"},{merge:true}).catch(console.error),800)};
-window.cloud={
- toggle(){up=!up;$("nm").style.display=up?"":"none";$("sb").textContent=up?"Create account":"Sign in";
-  $("sw").textContent=up?"Have an account? Sign in":"New here? Create account";$("err").textContent=""},
- async submit(){$("err").textContent="";const e=$("em").value.trim(),p=$("pw").value;
-  try{if(up){const n=$("nm").value.trim();if(!n)throw{code:"name"};
-   const c=await createUserWithEmailAndPassword(auth,e,p);await updateProfile(c.user,{displayName:n});window.cloudSave(getState())}
-  else await signInWithEmailAndPassword(auth,e,p)}
-  catch(x){const m={name:"Enter a trainer name.","auth/invalid-email":"Invalid email.","auth/weak-password":"Password needs 6+ characters.",
-   "auth/email-already-in-use":"Email already used. Sign in instead.","auth/invalid-credential":"Wrong email or password."};
-   $("err").textContent=m[x.code]||"Something went wrong. Try again."}},
- async out(){clearTimeout(timer);uid=null;await signOut(auth);setState({packs:5,t:Date.now(),col:{}})}
-};
-onAuthStateChanged(auth,async u=>{
- if(!u){uid=null;$("so").style.display="none";$("auth").classList.add("show");return}
- $("auth").classList.remove("show");$("so").style.display="";
- const s=await getDoc(doc(db,"users",u.uid));
- uid=u.uid;
- if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{}})}
- else window.cloudSave(getState());
-});
-</script>
+<script src="game.js"></script>
+<script type="module" src="auth.js"></script>
 </body>
 </html>
