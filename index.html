@@ -125,8 +125,7 @@ render();setInterval(()=>{if(view=="home"&&!pending.length)render()},30000);
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-// PASTE YOUR FIREBASE WEB CONFIG HERE
-const cfg={apiKey:"PASTE",authDomain:"PASTE",projectId:"PASTE",appId:"PASTE"};
+const cfg={apiKey:"AIzaSyCkiiYyPINqFW98QnvFUou7zUYtq2Dz-5k",authDomain:"pokevault-6dae1.firebaseapp.com",projectId:"pokevault-6dae1",storageBucket:"pokevault-6dae1.firebasestorage.app",messagingSenderId:"1042434349246",appId:"1:1042434349246:web:0e95b8fb980f5c30e526ef"};
 const auth=getAuth(initializeApp(cfg)),db=getFirestore();
 const $=id=>document.getElementById(id);
 let uid=null,timer,up=false;
