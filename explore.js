@@ -28,9 +28,9 @@ if(E.t<1){E.t=Math.min(1,E.t+dt/150);if(E.t>=1){E.x=E.tx;E.y=E.ty;E.step^=1;arri
 else if(E.hold!=null&&!E.enc&&!busyE){E.d=E.hold;const[a,b]=DIRS[E.d],nx=E.x+a,ny=E.y+b;if(walk(nx,ny)){E.tx=nx;E.ty=ny;E.t=0}}
 const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
 function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<.14)encounter()}
-async function encounter(){busyE=true;try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
+async function encounter(){busyE=true;{const n=document.getElementById("cv");n&&(n.classList.add("flash"),setTimeout(()=>n.classList.remove("flash"),520))}try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 const c=await Promise.all(ids.map(getP)),W={common:62,rare:25,epic:10,legendary:3},tot=c.reduce((a,p)=>a+W[p.rar],0);let q=Math.random()*tot,k=0;for(;k<c.length-1;k++){q-=W[c[k].rar];if(q<=0)break}
-E.enc=c[k];const p=c[k];const el=document.getElementById("enc");if(!el||view!="explore"){E.enc=null;busyE=false;return}
+await new Promise(r=>setTimeout(r,450));E.enc=c[k];const p=c[k];const el=document.getElementById("enc");if(!el||view!="explore"){E.enc=null;busyE=false;return}
 el.innerHTML=`<p class="sub">A wild Pokémon appeared!</p><div style="width:min(250px,68vw)">${cardHTML(p,1)}</div><p id="em" style="min-height:22px;font-weight:600"></p><div class="two" id="eb" style="width:min(320px,90vw)"><button class="alt" onclick="throwBall()">Throw ball</button><button class="alt" onclick="endEnc()">Run</button></div>`;el.classList.add("show")}catch(e){}busyE=false}
 function endEnc(){E.enc=null;E.hold=null;document.getElementById("enc").classList.remove("show");hud()}
 function throwBall(){eb();const p=E.enc,m=document.getElementById("em");if(!p)return;
@@ -38,17 +38,47 @@ if(S.balls<1){m.textContent="No Poké Balls left. They refill over time.";return
 S.balls--;const done=t=>{m.textContent=t;document.getElementById("eb").innerHTML=`<button class="alt" onclick="endEnc()">Continue</button>`;save();hdr()};
 if(Math.random()<CP[p.rar]){addCard(slim(p));done("Gotcha! "+cap(p.name)+" was caught!")}
 else if(Math.random()<.35)done(cap(p.name)+" ran away!");else{m.textContent="It broke free! ("+S.balls+" balls left)";save()}}
-function draw(c){const ox=Math.max(0,Math.min(MW*TS-VW*TS,(E.x+(E.tx-E.x)*(E.t<1?E.t:0))*TS+TS/2-VW*TS/2)),oy=Math.max(0,Math.min(MH*TS-VH*TS,(E.y+(E.ty-E.y)*(E.t<1?E.t:0))*TS+TS/2-VH*TS/2));
-for(let y=Math.floor(oy/TS);y<=Math.ceil((oy+VH*TS)/TS);y++)for(let x=Math.floor(ox/TS);x<=Math.ceil((ox+VW*TS)/TS);x++)if(EMAP[y]&&EMAP[y][x]!=null)tile(c,EMAP[y][x],x*TS-ox,y*TS-oy);
-const f=E.t<1?E.t:0,px=(E.x+(E.tx-E.x)*f)*TS-ox,py=(E.y+(E.ty-E.y)*f)*TS-oy;player(c,px,py)}
-function tile(c,t,x,y){c.fillStyle=t==3?"#e6d79c":t==5?"#4aa3df":t==2?"#8fd27f":"#79c26e";c.fillRect(x,y,TS,TS);
-if(t==0||t==4){c.fillStyle="#6bb561";c.fillRect(x+6,y+8,3,3);c.fillRect(x+20,y+20,3,3)}
-if(t==1){c.fillStyle="#79c26e";c.fillRect(x,y,TS,TS);c.fillStyle="#5c3b1e";c.fillRect(x+13,y+22,6,9);c.fillStyle="#1f6b35";c.beginPath();c.arc(x+16,y+14,14,0,7);c.fill();c.fillStyle="#2f8f4a";c.beginPath();c.arc(x+12,y+10,6,0,7);c.fill()}
-if(t==2){c.fillStyle="#3f9e4f";for(const[a,b]of[[4,6],[16,4],[24,10],[8,18],[20,20],[2,26],[14,28]]){c.fillRect(x+a,y+b,2,9);c.fillRect(x+a+3,y+b+2,2,7);c.fillRect(x+a-3,y+b+3,2,6)}}
-if(t==4){c.fillStyle="#e8473d";c.fillRect(x+9,y+9,5,5);c.fillRect(x+20,y+18,5,5);c.fillStyle="#ffd84a";c.fillRect(x+11,y+11,1,1)}
-if(t==5){c.fillStyle="#7cc4ee";c.fillRect(x+6,y+10,10,2);c.fillRect(x+18,y+22,8,2)}}
-function player(c,x,y){const d=E.d,s=E.t<1?E.step:0;c.fillStyle="#0003";c.fillRect(x+8,y+28,16,3);
-c.fillStyle="#333";c.fillRect(x+10,y+25+(s?1:0),5,5);c.fillRect(x+17,y+25+(s?0:1),5,5);
-c.fillStyle="#3b5bdb";c.fillRect(x+9,y+15,14,11);c.fillStyle="#f2c9a0";c.fillRect(x+10,y+6,12,10);
-c.fillStyle="#e03131";c.fillRect(x+8,y+2,16,6);if(d==2)c.fillRect(x+9,y+7,14,2);if(d==1)c.fillRect(x+20,y+6,5,3);if(d==3)c.fillRect(x+7,y+6,5,3);
-if(d!=0){c.fillStyle="#222";if(d==2){c.fillRect(x+12,y+11,2,2);c.fillRect(x+18,y+11,2,2)}if(d==1)c.fillRect(x+19,y+11,2,2);if(d==3)c.fillRect(x+11,y+11,2,2)}}
+const hs=(x,y,k=0)=>{let h=Math.imul(x+k*131,374761393)^Math.imul(y+k*17,668265263);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
+const at=(x,y)=>EMAP[y]&&EMAP[y][x]!=null?EMAP[y][x]:1;
+function draw(c){const f=E.t<1?E.t:0,fx=E.x+(E.tx-E.x)*f,fy=E.y+(E.ty-E.y)*f,tm=performance.now()/1000;
+const ox=Math.round(Math.max(0,Math.min(MW*TS-VW*TS,fx*TS+TS/2-VW*TS/2))),oy=Math.round(Math.max(0,Math.min(MH*TS-VH*TS,fy*TS+TS/2-VH*TS/2)));
+const x0=Math.floor(ox/TS),x1=Math.ceil((ox+VW*TS)/TS),y0=Math.floor(oy/TS),y1=Math.ceil((oy+VH*TS)/TS)+1;
+for(let y=y0-1;y<=y1;y++)for(let x=x0;x<=x1;x++)ground(c,at(x,y),x,y,x*TS-ox,y*TS-oy,tm);
+const px=Math.round(fx*TS-ox),py=Math.round(fy*TS-oy),objs=[];
+for(let y=y0;y<=y1+1;y++)for(let x=x0-1;x<=x1;x++)if(at(x,y)==1&&y>=0&&x>=0&&y<MH&&x<MW)objs.push([y,0,x]);
+objs.push([fy+.01,1]);objs.sort((a,b)=>a[0]-b[0]);
+for(const o of objs){if(o[1])player(c,px,py,tm);else tree(c,o[2],o[0],o[2]*TS-ox,o[0]*TS-oy,tm)}
+if(at(Math.round(fx),Math.round(fy+.3))==2)blades(c,Math.round(fx),Math.round(fy+.3),px,py+6,tm,true);
+const g=c.createRadialGradient(VW*TS/2,VH*TS/2,VH*TS*.45,VW*TS/2,VH*TS/2,VW*TS*.75);g.addColorStop(0,"#0000");g.addColorStop(1,"#0a1a2a55");c.fillStyle=g;c.fillRect(0,0,VW*TS,VH*TS)}
+function blades(c,x,y,px,py,tm,front){const cols=["#2f8a44","#43b05a","#7fd678"];
+for(let i=0;i<8;i++){const bx=Math.floor(hs(x,y,i)*26)+2,by=Math.floor(hs(x,y,i+9)*14)+(front?0:10),sw=Math.round(Math.sin(tm*3+x*.9+i)*1.4),h=front?8:9+Math.floor(hs(x,y,i+3)*5);
+c.fillStyle=cols[i%3];c.fillRect(px+bx+sw,py+by,2,h);c.fillRect(px+bx+sw-2,py+by+3,2,h-3);c.fillRect(px+bx+sw+2,py+by+2,2,h-2)}}
+function ground(c,t,x,y,px,py,tm){const r=hs(x,y);
+if(t==3){c.fillStyle="#ebdfae";c.fillRect(px,py,TS,TS);c.fillStyle="#d9c98f";for(let i=0;i<4;i++)c.fillRect(px+Math.floor(hs(x,y,i)*28)+1,py+Math.floor(hs(x,y,i+5)*28)+1,2,2);
+c.fillStyle="#c9b77c";if(at(x,y-1)!=3&&at(x,y-1)!=2)c.fillRect(px,py,TS,3);if(at(x,y+1)!=3&&at(x,y+1)!=2)c.fillRect(px,py+TS-3,TS,3);if(at(x-1,y)!=3&&at(x-1,y)!=2)c.fillRect(px,py,3,TS);if(at(x+1,y)!=3&&at(x+1,y)!=2)c.fillRect(px+TS-3,py,3,TS);return}
+if(t==5){c.fillStyle="#3d9be0";c.fillRect(px,py,TS,TS);c.fillStyle="#58b0ee";c.fillRect(px,py+8,TS,6);c.fillRect(px,py+22,TS,6);
+const w=Math.sin(tm*2+x*1.7+y*1.1);c.fillStyle="#bfe6ff";c.fillRect(px+8+Math.round(w*5),py+10,8,2);c.fillRect(px+4-Math.round(w*4),py+24,10,2);
+c.fillStyle="#d9f0ff";if(at(x,y-1)!=5)c.fillRect(px,py,TS,3);if(at(x,y+1)!=5)c.fillRect(px,py+TS-3,TS,3);if(at(x-1,y)!=5)c.fillRect(px,py,3,TS);if(at(x+1,y)!=5)c.fillRect(px+TS-3,py,3,TS);return}
+c.fillStyle=t==2?"#5aa84e":(x+y)&1?"#7ccb6c":"#76c466";c.fillRect(px,py,TS,TS);
+if(t!=2){c.fillStyle="#63b055";for(let i=0;i<3;i++)c.fillRect(px+Math.floor(hs(x,y,i)*28)+1,py+Math.floor(hs(x,y,i+4)*28)+1,2,2);c.fillStyle="#9be28a";c.fillRect(px+Math.floor(r*24)+3,py+Math.floor(hs(x,y,7)*24)+3,2,2)}
+if(t==4){const col=["#ff6b6b","#ffd43b","#f783ac","#74c0fc"][Math.floor(r*4)];for(const[a,b]of[[8,10],[20,19]]){c.fillStyle="#2f8a44";c.fillRect(px+a+1,py+b+3,2,6);c.fillStyle=col;c.fillRect(px+a-1,py+b,6,2);c.fillRect(px+a+1,py+b-2,2,6);c.fillStyle="#ffe066";c.fillRect(px+a+1,py+b,2,2)}}
+if(t==2)blades(c,x,y,px,py,tm,false)}
+function tree(c,x,y,px,py,tm){const v=hs(x,y);c.fillStyle="#0003";c.beginPath();c.ellipse(px+16,py+29,13,5,0,0,7);c.fill();
+c.fillStyle="#5a3a1e";c.fillRect(px+13,py+20,7,11);c.fillStyle="#7b5230";c.fillRect(px+13,py+20,3,11);
+c.fillStyle=v>.5?"#1d6a34":"#1b6330";c.beginPath();c.arc(px+16,py+10,15,0,7);c.fill();
+c.fillStyle="#2c8a46";c.beginPath();c.arc(px+13,py+8,11,0,7);c.fill();c.fillStyle="#4db366";c.beginPath();c.arc(px+9,py+4,5,0,7);c.fill();
+c.fillStyle="#1d6a34";c.fillRect(px+20,py+10,2,2);c.fillRect(px+10,py+14,2,2);c.fillRect(px+22,py+16,2,2)}
+function player(c,x,y,tm){const d=E.d,mv=E.t<1,s=mv?E.step:0,bob=mv?-Math.round(Math.abs(Math.sin(E.t*Math.PI))*2):0;
+c.fillStyle="#0004";c.beginPath();c.ellipse(x+16,y+29,9,3.5,0,0,7);c.fill();
+const Y=y+bob;
+c.fillStyle="#2b2f45";c.fillRect(x+10,Y+24+(mv&&s?1:0),5,6);c.fillRect(x+17,Y+24+(mv&&!s?1:0),5,6);
+c.fillStyle="#f3f3f3";c.fillRect(x+10,Y+29,5,2);c.fillRect(x+17,Y+29,5,2);
+if(d==0){c.fillStyle="#f5c518";c.fillRect(x+9,Y+14,14,11)}
+c.fillStyle="#3b5bdb";c.fillRect(x+9,Y+14,14,11);c.fillStyle="#2f49b0";c.fillRect(x+9,Y+22,14,3);
+if(d==0){c.fillStyle="#f5c518";c.fillRect(x+11,Y+15,10,8)}
+c.fillStyle="#f2c9a0";if(d==1)c.fillRect(x+23,Y+17,3,6);if(d==3)c.fillRect(x+6,Y+17,3,6);if(d==2||d==0){c.fillRect(x+6,Y+16+(mv?s:0),3,7);c.fillRect(x+23,Y+16+(mv?1-s:0),3,7)}
+c.fillRect(x+10,Y+5,12,11);
+if(d==0){c.fillStyle="#3a2a1a";c.fillRect(x+10,Y+5,12,9)}
+c.fillStyle="#e03131";c.fillRect(x+8,Y+1,16,7);c.fillRect(x+9,Y+0,14,2);
+if(d==2){c.fillRect(x+9,Y+7,14,2);c.fillStyle="#fff";c.fillRect(x+14,Y+2,4,4)}if(d==1)c.fillRect(x+20,Y+6,6,3);if(d==3)c.fillRect(x+6,Y+6,6,3);
+c.fillStyle="#1f1f2e";if(d==2){c.fillRect(x+12,Y+11,2,3);c.fillRect(x+18,Y+11,2,3)}if(d==1)c.fillRect(x+19,Y+11,2,3);if(d==3)c.fillRect(x+11,Y+11,2,3)}

@@ -95,3 +95,4 @@ nav button{font-size:10px;padding:6px 2px}
 .dpad{display:grid;grid-template-columns:repeat(3,76px);grid-template-rows:repeat(2,60px);gap:6px;justify-content:center;margin:16px auto 0}
 .dpad button{background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text)}.dpad svg{width:28px;height:28px}
 #enc{position:fixed;inset:0;background:#05060cf0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;z-index:9;overflow:auto}#enc.show{display:flex}
+@keyframes flashc{0%,50%,100%{filter:none}25%,75%{filter:brightness(3)}}.ex canvas.flash{animation:flashc .5s}
