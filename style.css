@@ -77,3 +77,15 @@ html,body{overflow-x:hidden}nav button{line-height:1.2}
 .offer img{width:64px}.offer .i{flex:1;min-width:0;font-size:12px;color:var(--mut)}.offer .i b{color:var(--text);font-size:15px;display:block}
 .sm{background:var(--acc);border:0;color:#fff;border-radius:10px;padding:10px 12px;font:600 13px Outfit}.sm:disabled{background:var(--line);color:var(--mut)}
 nav button{font-size:11px}
+@keyframes pop{from{opacity:0;transform:translateY(24px) scale(.8)}}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-7deg)}40%{transform:rotate(7deg)}60%{transform:rotate(-5deg)}80%{transform:rotate(5deg)}}
+@keyframes flash{30%{box-shadow:0 0 60px 14px var(--c)}}
+.pack.shake{animation:shake .5s infinite}.flip.open .card.epic,.flip.open .card.legendary{animation:flash .9s}
+#dt{position:fixed;inset:0;background:#05060cf5;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;z-index:9;overflow:auto}#dt.show{display:flex}
+#dt>.card{width:min(300px,100%)}.bars{width:min(320px,100%)}
+.bar2{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px}.bar2 span{width:34px;color:var(--mut)}.bar2 div{flex:1;height:8px;background:var(--line);border-radius:9px;overflow:hidden}.bar2 i{display:block;height:100%;background:var(--acc)}.bar2 b{width:32px;text-align:right}
+.plist{width:100%;max-width:420px;max-height:62vh;overflow:auto}
+.prow{display:flex;align-items:center;gap:12px;padding:8px 12px;margin-bottom:6px;background:var(--panel);border:2px solid var(--line);border-radius:12px}.prow.sel{border-color:var(--acc)}
+.prow img{width:44px}.prow b{flex:1}.prow span{color:var(--mut);font-size:13px}
+#dt .x{left:auto;right:14px;top:44px}
+.flip .back{background:url(cardback.jpg) center/100% 100% no-repeat;font-size:0;border-radius:12px}
