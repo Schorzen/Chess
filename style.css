@@ -89,3 +89,9 @@ nav button{font-size:11px}
 .prow img{width:44px}.prow b{flex:1}.prow span{color:var(--mut);font-size:13px}
 #dt .x{left:auto;right:14px;top:44px}
 .flip .back{background:url(cardback.jpg) center/100% 100% no-repeat;font-size:0;border-radius:12px}
+nav button{font-size:10px;padding:6px 2px}
+.ex{touch-action:none;user-select:none;-webkit-user-select:none}.exh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
+.ex canvas{width:100%;display:block;image-rendering:pixelated;border-radius:14px;border:2px solid var(--line);background:#79c26e}
+.dpad{display:grid;grid-template-columns:repeat(3,76px);grid-template-rows:repeat(2,60px);gap:6px;justify-content:center;margin:16px auto 0}
+.dpad button{background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text)}.dpad svg{width:28px;height:28px}
+#enc{position:fixed;inset:0;background:#05060cf0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;z-index:9;overflow:auto}#enc.show{display:flex}

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéVault</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <header><h1>Poké<span>Vault</span></h1><div style="display:flex;gap:8px"><div class="pill" id="count"></div><button class="pill" id="so" style="display:none;font-family:inherit" onclick="cloud.out()">Sign out</button></div></header>
 <main id="app"></main>
-<div id="ov"><div class="pull" id="pull"></div><button class="pill" style="font-family:inherit;padding:10px 18px" onclick="document.querySelectorAll('.flip').forEach(e=>e.classList.add('open'))">Flip all</button><button class="go" style="max-width:520px" onclick="closeOv()">Add to collection</button></div>
+<div id="ov"><div class="pull" id="pull"></div><button class="pill" style="font-family:inherit;padding:10px 18px" onclick="document.querySelectorAll('.flip').forEach(e=>e.classList.add('open'));chk()">Flip all</button><button class="go" id="addb" style="max-width:520px" onclick="closeOv()">Add to collection</button></div>
 <div id="dt"></div>
 <div id="auth"><h1 style="font-size:30px">Poké<span>Vault</span></h1><p class="sub">Sign in to save your cards online and play with friends.</p>
 <input id="nm" placeholder="Trainer name" style="display:none" maxlength="16">
@@ -22,12 +22,14 @@
 <button class="go" onclick="cloud.check()">I've verified</button><button class="pill" style="font-family:inherit;padding:14px" onclick="cloud.resend()">Resend email</button><a onclick="cloud.out()">Sign out</a></div>
 <nav>
 <button id="n1" onclick="go('home')"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M12 8v4M10 10h4"/></svg>Packs</button>
+<button id="n6" onclick="go('explore')"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Explore</button>
 <button id="n4" onclick="go('battle')"><svg viewBox="0 0 24 24"><path d="M14 4l6-1-1 6-9 9-3-3zM4 20l4-4M6 14l4 4"/></svg>Battle</button>
 <button id="n5" onclick="go('trade')"><svg viewBox="0 0 24 24"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>Trade</button>
 <button id="n3" onclick="go('top')"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg>Top</button>
 <button id="n2" onclick="go('col')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Collection</button>
 </nav>
-<script src="game.js?v=6"></script>
-<script type="module" src="auth.js?v=6"></script>
+<script src="game.js?v=9"></script>
+<script src="explore.js?v=9"></script>
+<script type="module" src="auth.js?v=9"></script>
 </body>
 </html>

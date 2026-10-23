@@ -6,7 +6,7 @@ const auth=getAuth(initializeApp(cfg)),db=getFirestore();
 const $=id=>document.getElementById(id);
 let uid=null,timer,up=false;
 window.cloudSave=s=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(()=>
- setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,count:Object.keys(s.col).length,
+ setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,balls:s.balls??10,bl:s.bl||Date.now(),count:Object.keys(s.col).length,
  name:auth.currentUser?.displayName||"Trainer"},{merge:true}).catch(console.error),800)};
 const nm=()=>auth.currentUser?.displayName||"Trainer",tc=()=>collection(db,"trades"),pk=s=>s.docs.map(d=>({id:d.id,...d.data()}));
 window.trade={
@@ -40,7 +40,7 @@ async function enter(u){
  $("auth").classList.remove("show");$("verify").classList.remove("show");
  const s=await getDoc(doc(db,"users",u.uid));
  uid=u.uid;
- if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null})}
+ if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now()})}
  else window.cloudSave(getState());
 }
 onAuthStateChanged(auth,u=>{

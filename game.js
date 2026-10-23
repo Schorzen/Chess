@@ -74,19 +74,22 @@ return{id,name:j.name,types:j.types.map(t=>t.type.name),hp:s[0],atk:s[1],def:s[2
 async function openPack(prem){regen();if(prem){if(S.coins<300)return;S.coins-=300}else{if(S.packs<1)return;S.packs--}save();render();
 const N=5,C=15;
 const ids=[];while(ids.length<C){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
-const ov=document.getElementById("ov");document.getElementById("pull").innerHTML='<div class="pack shake" style="grid-column:1/-1;margin:40px auto"></div>';ov.classList.add("show");
+const ov=document.getElementById("ov");document.getElementById("pull").innerHTML='<div class="pack shake" style="grid-column:1/-1;margin:40px auto"></div>';ov.classList.add("show");document.getElementById("addb").disabled=true;
 try{const cands=await Promise.all(ids.map(getP));
 const W=prem?{common:20,rare:35,epic:30,legendary:15}:{common:62,rare:25,epic:10,legendary:3};
 pending=[];const pool=[...cands];while(pending.length<N){const tot=pool.reduce((a,c)=>a+W[c.rar],0);let q=Math.random()*tot,k=0;for(;k<pool.length-1;k++){q-=W[pool[k].rar];if(q<=0)break}pending.push(pool.splice(k,1)[0])}}catch(e){if(prem)S.coins+=300;else S.packs++;save();ov.classList.remove("show");alert("No connection. Try again.");render();return}
 await new Promise(r=>setTimeout(r,900));
-document.getElementById("pull").innerHTML=pending.map((p,i)=>`<div class="flip" style="animation:pop .45s both;animation-delay:${i*.12}s" onclick="this.classList.add('open')"><div class="in"><div class="back">?</div><div class="front">${cardHTML(p,1)}</div></div></div>`).join("");
+document.getElementById("pull").innerHTML=pending.map((p,i)=>`<div class="flip" style="animation:pop .45s both;animation-delay:${i*.12}s" onclick="flipC(this)"><div class="in"><div class="back">?</div><div class="front">${cardHTML(p,1)}</div></div></div>`).join("");
+document.getElementById("addb").disabled=true;
 document.querySelectorAll(".flip .in").forEach(e=>e.style.minHeight=e.querySelector(".card").offsetHeight+"px");}
-function closeOv(){pending.forEach(p=>{const o=S.col[p.id];S.col[p.id]=o?{...o,n:o.n+1}:{...p,n:1}});pending=[];save();
+function flipC(e){e.classList.add("open");chk()}
+function chk(){const n=document.querySelectorAll(".flip");document.getElementById("addb").disabled=!n.length||document.querySelectorAll(".flip.open").length<n.length}
+function closeOv(){if(document.getElementById("addb").disabled)return;pending.forEach(p=>{const o=S.col[p.id];S.col[p.id]=o?{...o,n:o.n+1}:{...p,n:1}});pending=[];save();
 document.getElementById("ov").classList.remove("show");render()}
 function go(v){view=v;render()}
 function render(){regen();dt.classList.remove("show");const owned=Object.keys(S.col).length;
 document.getElementById("count").textContent=S.coins+" coins · "+owned+"/"+TOTAL;
-n1.classList.toggle("on",view=="home");n2.classList.toggle("on",view=="col");n3.classList.toggle("on",view=="top");n4.classList.toggle("on",view=="battle");n5.classList.toggle("on",view=="trade");
+n1.classList.toggle("on",view=="home");n2.classList.toggle("on",view=="col");n3.classList.toggle("on",view=="top");n4.classList.toggle("on",view=="battle");n5.classList.toggle("on",view=="trade");n6.classList.toggle("on",view=="explore");
 const app=document.getElementById("app");
 if(view=="home"){const mins=Math.max(1,Math.ceil((REGEN-(Date.now()-S.t))/60000));const left=864e5-(Date.now()-S.daily),ready=left<=0;
 app.innerHTML=`<section class="hero"><div class="pack"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.500-.5z"/></svg></div>
@@ -98,6 +101,7 @@ else if(view=="battle"){const me=team(),cd=3e5-(Date.now()-(S.bt||0)),mini=p=>`<
 app.innerHTML=`<h2 style="margin-bottom:6px">Battle</h2><p class="sub" style="margin-bottom:12px">Your 3 strongest cards fight 3 random opponents. Wins so far: ${S.wins||0}. Opponents get stronger with every win.</p>`+
 (me.length<3?`<p class="sub">Collect at least 3 cards to battle.</p>`:`<div class="team">${me.map(mini).join("")}</div><button class="pill" style="margin-top:10px;font-family:inherit;padding:10px 16px" onclick="editTeam()">Edit team</button><button class="go" style="margin-top:14px" ${cd>0||busy?"disabled":""} onclick="fight()">${busy?"Fighting…":cd>0?"Ready in "+Math.ceil(cd/6e4)+" min":"Fight"}</button>`)+
 (last?`<div class="res" style="margin-top:16px">${last.win?"Victory":"Defeat"} · +${last.reward} coins</div><div class="log">${last.log.join("<br>")}</div>`:"")}
+else if(view=="explore"){exploreView()}
 else if(view=="trade"){tradeView()}
 else if(view=="top"){app.innerHTML=`<p class="sub">Loading…</p>`;(window.cloud?cloud.top():Promise.resolve([])).then(r=>{if(view!="top")return;app.innerHTML=`<h2 style="margin-bottom:12px">Leaderboard</h2>`+(r.length?r.map((u,i)=>`<div class="row"><b>${i+1}</b><span>${u.name||"Trainer"}</span><em>${u.count||0}/${TOTAL}</em></div>`).join(""):`<p class="sub">No players yet.</p>`)}).catch(()=>app.innerHTML=`<p class="sub">Could not load leaderboard.</p>`)}
 else{const list=Object.values(S.col);const cards=filter=="all"?null:filter;
