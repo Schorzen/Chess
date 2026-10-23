@@ -112,3 +112,6 @@ nav button{font-size:10px;padding:6px 2px}
 .chips.chsm{margin-top:-6px}.chips.chsm button{padding:5px 11px;font-size:12px}
 .grid .meta{display:flex;justify-content:center;gap:3px;margin-top:2px}.grid .t{font-size:8px;padding:1px 6px}
 .bars>.sub:last-child{margin-top:12px}
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+img{pointer-events:none;-webkit-user-drag:none;user-drag:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}

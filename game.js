@@ -1,3 +1,6 @@
+// Block long-press menu, text selection, copy and image dragging (inputs stay usable)
+const okEl=e=>e.target&&e.target.closest&&e.target.closest("input,textarea,select");
+["contextmenu","selectstart","copy","cut","dragstart"].forEach(t=>document.addEventListener(t,e=>{if(!okEl(e))e.preventDefault()}));
 const MAX=3,REGEN=30*60*1000,TOTAL=386,KEY="pokevault_v1";
 let S=JSON.parse(localStorage.getItem(KEY)||"null")||{packs:MAX,t:Date.now(),col:{},coins:30,daily:0};
 S.coins=S.coins??30;S.daily=S.daily||0;
