@@ -1,13 +1,24 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,sendEmailVerification} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyCkiiYyPINqFW98QnvFUou7zUYtq2Dz-5k",authDomain:"pokevault-6dae1.firebaseapp.com",projectId:"pokevault-6dae1",storageBucket:"pokevault-6dae1.firebasestorage.app",messagingSenderId:"1042434349246",appId:"1:1042434349246:web:0e95b8fb980f5c30e526ef"};
 const auth=getAuth(initializeApp(cfg)),db=getFirestore();
 const $=id=>document.getElementById(id);
 let uid=null,timer,up=false;
 window.cloudSave=s=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(()=>
- setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,count:Object.keys(s.col).length,
+ setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,count:Object.keys(s.col).length,
  name:auth.currentUser?.displayName||"Trainer"},{merge:true}).catch(console.error),800)};
+const nm=()=>auth.currentUser?.displayName||"Trainer",tc=()=>collection(db,"trades"),pk=s=>s.docs.map(d=>({id:d.id,...d.data()}));
+window.trade={
+ uid:()=>uid,
+ async list(){const o=await getDocs(query(tc(),where("status","==","open"),limit(40)));
+  const d=await getDocs(query(tc(),where("from","==",uid),where("status","==","accepted")));return{open:pk(o).sort((a,b)=>b.ts-a.ts),done:pk(d)}},
+ post:(give,want)=>addDoc(tc(),{from:uid,fromName:nm(),give,want:want||null,status:"open",ts:Date.now()}),
+ cancel:id=>updateDoc(doc(db,"trades",id),{status:"cancelled"}),
+ claim:id=>updateDoc(doc(db,"trades",id),{status:"claimed"}),
+ accept:(id,got)=>runTransaction(db,async tx=>{const r=doc(db,"trades",id),s=await tx.get(r);
+  if(!s.exists()||s.data().status!=="open")throw new Error("gone");tx.update(r,{status:"accepted",to:uid,toName:nm(),got})})
+};
 window.cloud={
  toggle(){up=!up;$("nm").style.display=up?"":"none";$("sb").textContent=up?"Create account":"Sign in";
   $("sw").textContent=up?"Have an account? Sign in":"New here? Create account";$("err").textContent=""},
@@ -29,7 +40,7 @@ async function enter(u){
  $("auth").classList.remove("show");$("verify").classList.remove("show");
  const s=await getDoc(doc(db,"users",u.uid));
  uid=u.uid;
- if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??100,daily:d.daily||0})}
+ if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0})}
  else window.cloudSave(getState());
 }
 onAuthStateChanged(auth,u=>{

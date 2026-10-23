@@ -67,3 +67,13 @@ html,body{overflow-x:hidden}nav button{line-height:1.2}
 .grid .rt{font-size:8px;text-align:center}.grid .empty{border-radius:12px;font-size:14px}
 .grid .sell{padding:5px;font-size:10px;margin-top:4px}
 .grid .x{left:auto;right:6px;top:26px}
+.btns{display:flex;gap:4px}.btns .sell{flex:1}.sell.up{background:var(--acc)}
+.team{display:flex;gap:8px}.mini{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;font-size:11px;color:var(--mut)}
+.mini img{width:100%}.mini b{color:var(--text);font-size:12px}
+.log{max-height:260px;overflow:auto;font-size:12px;line-height:1.7;color:var(--mut);background:var(--panel);border-radius:12px;padding:12px;margin-top:10px}
+.res{font-size:22px;font-weight:800}
+.post select,.post input{width:100%;padding:13px;margin:6px 0;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 15px Outfit}
+.offer{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px}
+.offer img{width:64px}.offer .i{flex:1;min-width:0;font-size:12px;color:var(--mut)}.offer .i b{color:var(--text);font-size:15px;display:block}
+.sm{background:var(--acc);border:0;color:#fff;border-radius:10px;padding:10px 12px;font:600 13px Outfit}.sm:disabled{background:var(--line);color:var(--mut)}
+nav button{font-size:11px}
