@@ -96,3 +96,12 @@ nav button{font-size:10px;padding:6px 2px}
 .dpad button{background:var(--panel);border:1px solid var(--line);border-radius:16px;color:var(--text)}.dpad svg{width:28px;height:28px}
 #enc{position:fixed;inset:0;background:#05060cf0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;z-index:9;overflow:auto}#enc.show{display:flex}
 @keyframes flashc{0%,50%,100%{filter:none}25%,75%{filter:brightness(3)}}.ex canvas.flash{animation:flashc .5s}
+#arena{position:fixed;inset:0;z-index:12;display:none;overflow:hidden;background:linear-gradient(#7ec8ff 0%,#d4f0ff 36%,#7cc86c 36%,#4e9f47 100%)}#arena.show{display:block}
+.abox{position:absolute;width:46%;background:#0b0d17e6;border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:13px}#ebox{top:16px;left:12px}#pbox{bottom:120px;right:12px}
+.abox span{color:var(--acc);letter-spacing:2px;font-size:11px}.hp{height:8px;background:var(--line);border-radius:9px;margin-top:8px;overflow:hidden}.hp i{display:block;height:100%;width:100%;background:#4ade80;transition:width .45s,background .3s}
+.sp{position:absolute;width:42%;aspect-ratio:1}.sp::before{content:"";position:absolute;left:5%;right:5%;bottom:2%;height:14%;background:#0003;border-radius:50%}.sp img{position:relative;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 6px #0005)}
+#es{top:84px;right:10px}#ps{bottom:140px;left:4px;width:52%}#ps img{transform:scaleX(-1)}
+#atxt{position:absolute;left:0;right:0;bottom:0;padding:24px 18px 34px;background:#0b0d17f5;font-weight:600;font-size:16px;min-height:100px;border-top:1px solid var(--line)}
+.fx{position:absolute;width:80px;height:80px;border-radius:50%;pointer-events:none}.dmg{position:absolute;font-size:26px;font-weight:800;color:#fff;text-shadow:0 2px 0 #000,0 0 8px #000;pointer-events:none}
+#askip{position:absolute;top:16px;right:12px;font-family:inherit;padding:8px 14px}
+#ares{position:absolute;inset:0;background:#05060cf2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}#ares .res{font-size:34px}

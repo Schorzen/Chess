@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéVault</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 <header><h1>Poké<span>Vault</span></h1><div style="display:flex;gap:8px"><div class="pill" id="count"></div><button class="pill" id="so" style="display:none;font-family:inherit" onclick="cloud.out()">Sign out</button></div></header>
 <main id="app"></main>
 <div id="ov"><div class="pull" id="pull"></div><button class="pill" style="font-family:inherit;padding:10px 18px" onclick="document.querySelectorAll('.flip').forEach(e=>e.classList.add('open'));chk()">Flip all</button><button class="go" id="addb" style="max-width:520px" onclick="closeOv()">Add to collection</button></div>
 <div id="dt"></div>
+<div id="arena"><div class="abox" id="ebox"><b id="enm"></b> <span id="edots"></span><div class="hp"><i id="ehb"></i></div></div><div class="sp" id="es"></div>
+<div class="sp" id="ps"></div><div class="abox" id="pbox"><b id="pnm"></b> <span id="pdots"></span><div class="hp"><i id="phb"></i></div></div>
+<div id="atxt"></div><button class="pill" id="askip" onclick="skipB=true">Skip</button><div id="ares"></div></div>
 <div id="auth"><h1 style="font-size:30px">Poké<span>Vault</span></h1><p class="sub">Sign in to save your cards online and play with friends.</p>
 <input id="nm" placeholder="Trainer name" style="display:none" maxlength="16">
 <input id="em" type="email" placeholder="Email" autocomplete="email">
@@ -28,7 +31,7 @@
 <button id="n3" onclick="go('top')"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg>Top</button>
 <button id="n2" onclick="go('col')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Collection</button>
 </nav>
-<script src="game.js?v=9"></script>
+<script src="game.js?v=11"></script>
 <script src="explore.js?v=10"></script>
 <script type="module" src="auth.js?v=9"></script>
 </body>

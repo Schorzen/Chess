@@ -20,17 +20,40 @@ function saveTeam(){S.team=pick.slice();save();render()}
 function detail(id){const o=S.col[id],p=eff(o),bar=(l,v)=>`<div class="bar2"><span>${l}</span><div><i style="width:${Math.min(100,v/180*100)}%"></i></div><b>${v}</b></div>`;
 dt.innerHTML=cardHTML(o,o.n)+`<div class="bars">${bar("HP",p.hp)}${bar("ATK",p.atk)}${bar("DEF",p.def)}<p class="sub">Level ${o.lv||1}/5 · ${o.n} copies · #${String(id).padStart(3,"0")}</p></div><button class="go" style="max-width:320px" onclick="dt.classList.remove('show')">Close</button>`;dt.classList.add("show")}
 let last=null,busy=false;
-function sim(A,B){const a=A.map(x=>({...x,h:x.hp*3})),b=B.map(x=>({...x,h:x.hp*3})),log=[];let i=0,j=0,t=0;
+function sim(A,B){const a=A.map(x=>({...x,h:x.hp*3})),b=B.map(x=>({...x,h:x.hp*3})),log=[],ev=[];let i=0,j=0,t=0;
+const snap=()=>[a.map(x=>Math.max(0,x.h)),b.map(x=>Math.max(0,x.h))];
 while(i<a.length&&j<b.length&&t<80){t++;const x=a[i],y=b[j];
-const d=Math.max(1,Math.round(x.atk*(.7+Math.random()*.6)-y.def*.35));y.h-=d;log.push(cap(x.name)+" hits "+cap(y.name)+" for "+d);
+const d=Math.max(1,Math.round(x.atk*(.7+Math.random()*.6)-y.def*.35));y.h-=d;log.push(cap(x.name)+" hits "+cap(y.name)+" for "+d);ev.push({att:"a",i,j,d,hp:snap(),faint:y.h<=0});
 if(y.h<=0){log.push(cap(y.name)+" fainted");j++;continue}
-const e=Math.max(1,Math.round(y.atk*(.7+Math.random()*.6)-x.def*.35));x.h-=e;log.push(cap(y.name)+" hits "+cap(x.name)+" for "+e);
+const e=Math.max(1,Math.round(y.atk*(.7+Math.random()*.6)-x.def*.35));x.h-=e;log.push(cap(y.name)+" hits "+cap(x.name)+" for "+e);ev.push({att:"b",i,j,d:e,hp:snap(),faint:x.h<=0});
 if(x.h<=0){log.push(cap(x.name)+" fainted");i++}}
-return{win:j>=b.length,log}}
+return{win:j>=b.length,log,ev}}
+const TC={fire:"#ff7a33",water:"#3d9be0",grass:"#4db366",electric:"#ffd43b",psychic:"#f783ac",ice:"#a5e8ff",poison:"#a855f7",ground:"#c9a24d",rock:"#9c8a6a",bug:"#94c43a",ghost:"#7c5cff",dragon:"#5c6bff",fighting:"#d9480f",flying:"#a5b8ff",normal:"#cfd4e6",fairy:"#ff9ecb"};
+let skipB=false;const wt=ms=>skipB?Promise.resolve():new Promise(r=>setTimeout(r,ms));
+async function playBattle(me,en,r){skipB=false;const $=id=>document.getElementById(id),ar=$("arena");
+ar.classList.add("show");$("ares").style.display="none";let ci=-1,cj=-1;
+const show=(a,p)=>{const el=$(a?"ps":"es");el.getAnimations().forEach(x=>x.cancel());el.style.visibility="visible";el.innerHTML=`<img src="${img(p.id)}" alt="">`;
+$(a?"pnm":"enm").textContent=cap(p.name)+((p.lv||1)>1?" Lv"+p.lv:"");hp(a,p,p.hp*3);el.animate([{transform:`translateX(${a?-80:80}px)`,opacity:0},{transform:"none",opacity:1}],{duration:350})};
+const hp=(a,p,v)=>{const b=$(a?"phb":"ehb"),q=Math.max(0,v)/(p.hp*3);b.style.width=q*100+"%";b.style.background=q>.5?"#4ade80":q>.2?"#facc15":"#f87171"};
+const pos=el=>{const a=ar.getBoundingClientRect(),b=el.getBoundingClientRect();return[b.left-a.left+b.width/2,b.top-a.top+b.height/2]};
+const fx=(el,col)=>{const[x,y]=pos(el),d=document.createElement("i");d.className="fx";d.style.cssText=`left:${x}px;top:${y}px;background:radial-gradient(${col},${col}00 70%)`;ar.appendChild(d);d.animate([{transform:"translate(-50%,-50%) scale(.2)",opacity:1},{transform:"translate(-50%,-50%) scale(3)",opacity:0}],{duration:520}).onfinish=()=>d.remove()};
+const flt=(el,t)=>{const[x,y]=pos(el),d=document.createElement("b");d.className="dmg";d.textContent=t;d.style.cssText=`left:${x-14}px;top:${y-30}px`;ar.appendChild(d);d.animate([{transform:"translateY(0)",opacity:1},{transform:"translateY(-50px)",opacity:0}],{duration:800}).onfinish=()=>d.remove()};
+const dots=h=>"●".repeat(h.filter(x=>x>0).length)+"○".repeat(h.filter(x=>x<=0).length);
+$("pdots").textContent="●●●";$("edots").textContent="●●●";$("atxt").textContent="Battle start!";await wt(500);
+for(const e of r.ev){if(skipB)break;
+if(e.i!=ci){ci=e.i;show(true,me[ci])}if(e.j!=cj){cj=e.j;show(false,en[cj])}
+const A=e.att=="a",atk=A?me[e.i]:en[e.j],tgt=A?en[e.j]:me[e.i],aEl=$(A?"ps":"es"),tEl=$(A?"es":"ps"),dir=A?1:-1;
+$("atxt").textContent=cap(atk.name)+" attacks!";
+await aEl.animate([{transform:"translate(0,0)"},{transform:`translate(${dir*50}px,${-dir*30}px)`},{transform:"translate(0,0)"}],{duration:380,easing:"ease-in-out"}).finished;
+fx(tEl,TC[atk.types[0]]||"#fff");tEl.animate([{transform:"translateX(0)",filter:"brightness(1)"},{transform:"translateX(-10px)",filter:"brightness(3)"},{transform:"translateX(10px)"},{transform:"translateX(0)",filter:"brightness(1)"}],{duration:380});
+flt(tEl,"-"+e.d);hp(!A,tgt,A?e.hp[1][e.j]:e.hp[0][e.i]);$("pdots").textContent=dots(e.hp[0]);$("edots").textContent=dots(e.hp[1]);await wt(520);
+if(e.faint){$("atxt").textContent=cap(tgt.name)+" fainted!";await tEl.animate([{opacity:1,transform:"translateY(0)"},{opacity:0,transform:"translateY(40px)"}],{duration:500,fill:"forwards"}).finished;await wt(300)}}
+await new Promise(res=>{$("ares").innerHTML=`<div class="res">${r.win?"Victory!":"Defeat"}</div><p class="sub">+${r.reward} coins</p><button class="go" id="acont" style="max-width:300px">Continue</button>`;$("ares").style.display="flex";$("acont").onclick=res});
+ar.classList.remove("show")}
 async function fight(){if(busy)return;const me=team();if(me.length<3||Date.now()-(S.bt||0)<3e5)return;busy=true;
 const ids=[];while(ids.length<3){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 try{const sc=1+.05*Math.min(S.wins||0,20);const en=(await Promise.all(ids.map(getP))).map(p=>({...p,hp:Math.round(p.hp*sc),atk:Math.round(p.atk*sc),def:Math.round(p.def*sc)}));
-const r=sim(me,en);const reward=r.win?8+Math.min(S.wins||0,10):1;S.coins+=reward;if(r.win)S.wins=(S.wins||0)+1;S.bt=Date.now();save();last={...r,reward,en}}
+const r=sim(me,en);const reward=r.win?8+Math.min(S.wins||0,10):1;S.coins+=reward;if(r.win)S.wins=(S.wins||0)+1;S.bt=Date.now();save();last={...r,reward,en};try{await playBattle(me,en,last)}catch(e){document.getElementById("arena").classList.remove("show")}}
 catch(e){alert("No connection. Try again.")}busy=false;render()}
 const slim=p=>({id:p.id,name:p.name,types:p.types,hp:p.hp,atk:p.atk,def:p.def,rar:p.rar});
 function addCard(p){const o=S.col[p.id];if(o)o.n++;else S.col[p.id]={...p,n:1,lv:1}}
