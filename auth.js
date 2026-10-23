@@ -28,12 +28,12 @@ window.mp={uid:()=>uid,
  accept:(id,team)=>updateDoc(doc(db,"duels",id),{status:"accepted",teamTo:team}),
  decline:id=>updateDoc(doc(db,"duels",id),{status:"declined"}),
  finish:(id,res)=>updateDoc(doc(db,"duels",id),{status:"done",res,t2:Date.now()})};
-window.onSignOut=()=>{clearTimeout(timer);uid=null;stopD()};
+window.onSignOut=()=>{clearTimeout(timer);uid=null;window.myName="";stopD()};
 window.onUser=async u=>{
  if(!u){uid=null;stopD();return}
- const s=await getDoc(doc(db,"users",u.uid));
- uid=u.uid;window.pname=u.displayName||"Trainer";watchDuels();
+ try{const s=await getDoc(doc(db,"users",u.uid));
+ uid=u.uid;window.myName=u.displayName||"Trainer";window.render&&render();watchDuels();
  if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now(),gb:d.gb||0,ub:d.ub||0,lure:d.lure||0})}
- else window.cloudSave(getState())};
+ else window.cloudSave(getState())}finally{window.bootDone&&bootDone()}};
 window.cloud=Object.assign(window.cloud||{},{
  async top(){return (await getDocs(query(collection(db,"users"),orderBy("count","desc"),limit(20)))).docs.map(d=>d.data())}});

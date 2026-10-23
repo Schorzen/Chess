@@ -28,8 +28,18 @@ document.getElementById("app").innerHTML=`<div class="lobby">
 e.innerHTML=r.slice(0,5).map((u,i)=>`<div class="lrow"><b>${i+1}</b><span>${esc(u.name||"Trainer")}</span><em>${u.count||0}</em></div>`).join("")||`<p class="sub">No players yet.</p>`}).catch(()=>{})}
 function paintTop(){const bk=document.getElementById("bk");if(!bk)return;bk.style.display=view=="home"||view=="explore"?"none":"";
 const o=Object.keys(S.col).length,top=Object.values(S.col).map(eff).sort((a,b)=>pw(b)-pw(a))[0];
-document.getElementById("pname").textContent=window.pname||"Trainer";document.getElementById("plv").textContent="Lv "+(1+Math.floor(o/5));
+document.getElementById("pname").textContent=window.myName||"Trainer";document.getElementById("plv").textContent="Lv "+(1+Math.floor(o/5));
 document.getElementById("av").innerHTML=top?`<img src="${img(top.id)}" alt="">`:""}
 async function goLandscape(){try{const d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen)await d.requestFullscreen({navigationUI:"hide"});
 if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("landscape")}catch(e){}}
 document.addEventListener("pointerdown",goLandscape,{once:true});
+
+// Loading screen (shown at start, while signing in, and while loading your data)
+const TIPS=["Tall grass hides rare Pokémon","Great Balls catch 1.5× more often","Level up cards with your duplicates","Walk up to a friend to challenge them","Lures double the wild Pokémon"];
+let bootT0=Date.now(),bootMin=1400;
+const tipI=setInterval(()=>{const e=document.getElementById("boottip");if(e)e.textContent=TIPS[Math.floor(Math.random()*TIPS.length)]},1800);
+window.showBoot=msg=>{const b=document.getElementById("boot");if(!b)return;bootT0=Date.now();bootMin=700;
+document.getElementById("bootmsg").textContent=msg||"Loading…";const bar=document.getElementById("bootbar");bar.style.transition="none";bar.style.width="0";bar.style.animation="none";void bar.offsetWidth;bar.style.animation="";b.classList.remove("out")};
+window.bootDone=()=>{const wait=Math.max(0,bootMin-(Date.now()-bootT0));setTimeout(()=>{const b=document.getElementById("boot");if(!b)return;
+const bar=document.getElementById("bootbar");bar.style.animation="none";bar.style.transition="width .25s";bar.style.width="100%";setTimeout(()=>b.classList.add("out"),280)},wait)};
+setTimeout(()=>window.bootDone(),9000);
