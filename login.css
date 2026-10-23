@@ -1,4 +1,4 @@
-#auth,#verify{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;gap:12px;padding:24px;z-index:20;max-width:420px;margin:auto}
+#auth,#verify{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:safe center;gap:10px;padding:16px 24px;overflow-y:auto;z-index:20;max-width:420px;margin:auto}
 #auth.show,#verify.show{display:flex}
 #auth input{width:100%;padding:15px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 16px Outfit}
 #auth a,#verify a{color:var(--acc);text-align:center;font-size:14px;cursor:pointer}#err{color:#f87171;font-size:13px;min-height:18px}

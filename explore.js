@@ -1,5 +1,5 @@
 // Explore: walk around a map, find Pokémon in tall grass, throw balls to catch them
-const TS=32,VW=11,VH=9,MW=34,MH=28,CP={common:.7,rare:.5,epic:.3,legendary:.12};
+let VW=14,VH=7;const TS=32,MW=34,MH=28,CP={common:.7,rare:.5,epic:.3,legendary:.12};
 const EMAP=(()=>{let s=7;const r=()=>(s=(s*1103515245+12345)&0x7fffffff)/0x7fffffff;
 const m=Array.from({length:MH},()=>Array(MW).fill(0));
 for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(x<2||y<2||x>=MW-2||y>=MH-2||r()<.1)m[y][x]=1;
@@ -13,12 +13,12 @@ let others={};
 let E={x:17,y:14,tx:17,ty:14,t:1,d:2,hold:null,step:0,enc:null,last:0},runId=0,busyE=false;
 function eb(){if(S.balls==null){S.balls=10;S.bl=Date.now()}const n=Date.now();
 if(S.balls>=10)S.bl=n;else{const g=Math.floor((n-S.bl)/24e4);if(g>0){S.balls=Math.min(10,S.balls+g);S.bl=S.balls>=10?n:S.bl+g*24e4}}}
-function hud(){eb();const e=document.getElementById("exb");if(e)e.textContent="Poké Balls "+S.balls+"/10"+(S.balls<10?" · +1 in "+Math.max(1,Math.ceil((24e4-(Date.now()-S.bl))/6e4))+" min":"")}
+function hud0(){eb();const e=document.getElementById("exb");if(e)e.textContent="Poké Balls "+S.balls+"/10"+(S.balls<10?" · +1 in "+Math.max(1,Math.ceil((24e4-(Date.now()-S.bl))/6e4))+" min":"")}
 const ch=d=>`<svg viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d="M6 15l6-6 6 6"/></svg>`;
-function exploreView(){
-document.getElementById("app").innerHTML=`<div class="ex"><div class="exh"><b id="exb"></b><span class="sub">Walk in tall grass</span></div>
-<canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas><div id="chal"></div><div id="enc"></div>
-<div class="joy" id="joy"><div class="knob" id="knob"></div></div></div>`;
+function exploreView(){VH=7;VW=Math.max(10,Math.min(26,Math.round(VH*innerWidth/innerHeight)));
+document.getElementById("app").innerHTML=`<div class="ex"><canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas>
+<div class="exhud"><button class="xb" onclick="go('home')">‹ Lobby</button><div class="exr"><span id="exb"></span><button class="xb" onclick="go('store')">Store</button></div></div>
+<div id="chal"></div><div id="enc"></div><div class="joy" id="joy"><div class="knob" id="knob"></div></div></div>`;
 bindJoy();hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
 const hold=d=>{E.hold=d},rel=()=>{E.hold=null};
 addEventListener("keydown",e=>{const k={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key];if(k!=null&&view=="explore"){E.hold=k;e.preventDefault()}});
@@ -27,18 +27,19 @@ const walk=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&[0,2,3,4].includes(EMAP[y][x]);
 function loop(ts,id){if(view!="explore"){if(id===runId){window.mp&&(mp.stop(),mp.leave());others={}}return}if(id!==runId)return;const dt=E.last?Math.min(50,ts-E.last):16;E.last=ts;
 if(E.t<1){E.t=Math.min(1,E.t+dt/150);if(E.t>=1){E.x=E.tx;E.y=E.ty;E.step^=1;arrive()}}
 else if(E.hold!=null&&!E.enc&&!busyE){E.d=E.hold;const[a,b]=DIRS[E.d],nx=E.x+a,ny=E.y+b;if(walk(nx,ny)){E.tx=nx;E.ty=ny;E.t=0}}
-social();const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
-function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<.14)encounter()}
+if(ts-(E.hs||0)>1000){E.hs=ts;hud()}social();const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
+function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<(S.lure>Date.now()?.28:.14))encounter()}
 async function encounter(){busyE=true;{const n=document.getElementById("cv");n&&(n.classList.add("flash"),setTimeout(()=>n.classList.remove("flash"),520))}try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 const c=await Promise.all(ids.map(getP)),W={common:62,rare:25,epic:10,legendary:3},tot=c.reduce((a,p)=>a+W[p.rar],0);let q=Math.random()*tot,k=0;for(;k<c.length-1;k++){q-=W[c[k].rar];if(q<=0)break}
 await new Promise(r=>setTimeout(r,450));E.enc=c[k];const p=c[k];const el=document.getElementById("enc");if(!el||view!="explore"){E.enc=null;busyE=false;return}
-el.innerHTML=`<p class="sub">A wild Pokémon appeared!</p><div style="width:min(250px,68vw)">${cardHTML(p,1)}</div><p id="em" style="min-height:22px;font-weight:600"></p><div class="two" id="eb" style="width:min(320px,90vw)"><button class="alt" onclick="throwBall()">Throw ball</button><button class="alt" onclick="endEnc()">Run</button></div>`;el.classList.add("show")}catch(e){}busyE=false}
+el.innerHTML=`<div class="encl" style="width:min(200px,30vw)">${cardHTML(p,1)}</div><div class="encr"><p class="sub">A wild Pokémon appeared!</p><p id="em" style="min-height:22px;font-weight:600"></p><div class="two" id="eb">${ballBtns()}</div></div>`;el.classList.add("show")}catch(e){}busyE=false}
 function endEnc(){E.enc=null;E.hold=null;document.getElementById("enc").classList.remove("show");hud()}
-function throwBall(){eb();const p=E.enc,m=document.getElementById("em");if(!p)return;
-if(S.balls<1){m.textContent="No Poké Balls left. They refill over time.";return}
-S.balls--;const done=t=>{m.textContent=t;document.getElementById("eb").innerHTML=`<button class="alt" onclick="endEnc()">Continue</button>`;save();hdr()};
-if(Math.random()<CP[p.rar]){addCard(slim(p));done("Gotcha! "+cap(p.name)+" was caught!")}
-else if(Math.random()<.35)done(cap(p.name)+" ran away!");else{m.textContent="It broke free! ("+S.balls+" balls left)";save()}}
+const ballBtns=()=>`<button class="alt" onclick="throwBall('p')">Poké ×${S.balls}</button>${S.gb>0?`<button class="alt" onclick="throwBall('g')">Great ×${S.gb}</button>`:""}${S.ub>0?`<button class="alt" onclick="throwBall('u')">Ultra ×${S.ub}</button>`:""}<button class="alt" onclick="endEnc()">Run</button>`;
+function throwBall(t){eb();const p=E.enc,m=document.getElementById("em"),k={p:"balls",g:"gb",u:"ub"}[t];if(!p||!k)return;
+if((S[k]||0)<1){m.textContent="None left. Visit the Store.";return}
+S[k]--;const done=x=>{m.textContent=x;document.getElementById("eb").innerHTML=`<button class="alt" onclick="endEnc()">Continue</button>`;save();hdr()};
+if(Math.random()<Math.min(.95,CP[p.rar]*{p:1,g:1.5,u:2}[t])){addCard(slim(p));done("Gotcha! "+cap(p.name)+" was caught!")}
+else if(Math.random()<.35)done(cap(p.name)+" ran away!");else{m.textContent="It broke free!";document.getElementById("eb").innerHTML=ballBtns();save()}}
 const hs=(x,y,k=0)=>{let h=Math.imul(x+k*131,374761393)^Math.imul(y+k*17,668265263);h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
 const at=(x,y)=>EMAP[y]&&EMAP[y][x]!=null?EMAP[y][x]:1;
 function draw(c){const f=E.t<1?E.t:0,fx=E.x+(E.tx-E.x)*f,fy=E.y+(E.ty-E.y)*f,tm=performance.now()/1000;
@@ -101,3 +102,5 @@ k.style.transform=`translate(${dx}px,${dy}px)`;E.hold=d<14?null:Math.abs(dx)>Mat
 const up=()=>{on=false;E.hold=null;k.style.transition="";k.style.transform=""};
 j.onpointerdown=e=>{on=true;j.setPointerCapture(e.pointerId);k.style.transition="none";mv(e)};
 j.onpointermove=e=>{if(on)mv(e)};j.onpointerup=up;j.onpointercancel=up;j.oncontextmenu=()=>false}
+
+function hud(){eb();const e=document.getElementById("exb");if(e){const l=S.lure>Date.now()?" · Lure "+Math.ceil((S.lure-Date.now())/6e4)+"m":"";e.textContent="Poké ×"+S.balls+(S.gb>0?" · Great ×"+S.gb:"")+(S.ub>0?" · Ultra ×"+S.ub:"")+l}}

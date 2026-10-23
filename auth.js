@@ -1,12 +1,9 @@
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,sendEmailVerification} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction,onSnapshot,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-const cfg={apiKey:"AIzaSyCkiiYyPINqFW98QnvFUou7zUYtq2Dz-5k",authDomain:"pokevault-6dae1.firebaseapp.com",projectId:"pokevault-6dae1",storageBucket:"pokevault-6dae1.firebasestorage.app",messagingSenderId:"1042434349246",appId:"1:1042434349246:web:0e95b8fb980f5c30e526ef"};
-const auth=getAuth(initializeApp(cfg)),db=getFirestore();
-const $=id=>document.getElementById(id);
-let uid=null,timer,up=false;
+// Game data in Firebase: saving progress, trades, friends in Explore, duels, leaderboard
+import {auth,db} from "./firebase.js";
+import {doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction,onSnapshot,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+let uid=null,timer;
 window.cloudSave=s=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(()=>
- setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,balls:s.balls??10,bl:s.bl||Date.now(),count:Object.keys(s.col).length,
+ setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,balls:s.balls??10,bl:s.bl||Date.now(),gb:s.gb||0,ub:s.ub||0,lure:s.lure||0,count:Object.keys(s.col).length,
  name:auth.currentUser?.displayName||"Trainer"},{merge:true}).catch(console.error),800)};
 const nm=()=>auth.currentUser?.displayName||"Trainer",tc=()=>collection(db,"trades"),pk=s=>s.docs.map(d=>({id:d.id,...d.data()}));
 window.trade={
@@ -31,30 +28,12 @@ window.mp={uid:()=>uid,
  accept:(id,team)=>updateDoc(doc(db,"duels",id),{status:"accepted",teamTo:team}),
  decline:id=>updateDoc(doc(db,"duels",id),{status:"declined"}),
  finish:(id,res)=>updateDoc(doc(db,"duels",id),{status:"done",res,t2:Date.now()})};
-window.cloud={
- toggle(){up=!up;$("nm").style.display=up?"":"none";$("sb").textContent=up?"Create account":"Sign in";
-  $("sw").textContent=up?"Have an account? Sign in":"New here? Create account";$("err").textContent=""},
- async submit(){$("err").textContent="";const e=$("em").value.trim(),p=$("pw").value;
-  try{if(up){const n=$("nm").value.trim();if(!n)throw{code:"name"};
-   const c=await createUserWithEmailAndPassword(auth,e,p);await updateProfile(c.user,{displayName:n});await sendEmailVerification(c.user)}
-  else await signInWithEmailAndPassword(auth,e,p)}
-  catch(x){const m={name:"Enter a trainer name.","auth/invalid-email":"Invalid email.","auth/weak-password":"Password needs 6+ characters.",
-   "auth/email-already-in-use":"Email already used. Sign in instead.","auth/invalid-credential":"Wrong email or password."};
-   $("err").textContent=m[x.code]||"Something went wrong. Try again."}},
- async check(){await auth.currentUser.reload();$("vmsg").textContent=auth.currentUser.emailVerified?"":"Not verified yet. Open the link in your email first.";enter(auth.currentUser)},
- async resend(){try{await sendEmailVerification(auth.currentUser);$("vmsg").textContent="Email sent. Check spam too."}catch(e){$("vmsg").textContent="Please wait a minute before resending."}},
- async top(){return (await getDocs(query(collection(db,"users"),orderBy("count","desc"),limit(20)))).docs.map(d=>d.data())},
- async out(){clearTimeout(timer);uid=null;await signOut(auth);setState({packs:5,t:Date.now(),col:{}})}
-};
-async function enter(u){
- $("so").style.display="";
- if(!u.emailVerified){uid=null;$("auth").classList.remove("show");$("vm").textContent=u.email;$("verify").classList.add("show");return}
- $("auth").classList.remove("show");$("verify").classList.remove("show");
+window.onSignOut=()=>{clearTimeout(timer);uid=null;stopD()};
+window.onUser=async u=>{
+ if(!u){uid=null;stopD();return}
  const s=await getDoc(doc(db,"users",u.uid));
- uid=u.uid;watchDuels();
- if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now()})}
- else window.cloudSave(getState());
-}
-onAuthStateChanged(auth,u=>{
- if(!u){uid=null;stopD();$("so").style.display="none";$("verify").classList.remove("show");$("auth").classList.add("show");return}
- enter(u)});
+ uid=u.uid;window.pname=u.displayName||"Trainer";watchDuels();
+ if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now(),gb:d.gb||0,ub:d.ub||0,lure:d.lure||0})}
+ else window.cloudSave(getState())};
+window.cloud=Object.assign(window.cloud||{},{
+ async top(){return (await getDocs(query(collection(db,"users"),orderBy("count","desc"),limit(20)))).docs.map(d=>d.data())}});
