@@ -15,7 +15,7 @@ const g=Math.floor((n-S.t)/REGEN);if(g>0){S.packs=Math.min(MAX,S.packs+g);S.t=S.
 function cardHTML(p,n){return `<div class="card ${p.rar}"><div class="top"><b>${cap(p.name)}</b><span>HP ${p.hp}</span></div>
 <div class="art"><img loading="lazy" src="${img(p.id)}" alt="${p.name}"></div>
 <div class="meta">${p.types.map(t=>`<i class="t">${t}</i>`).join("")}</div>
-<div class="st"><span>ATK ${p.atk}</span><span>DEF ${p.def}</span></div><em class="rt">${p.rar}</em>${n>1?`<u class="x">x${n}</u><button class="sell" onclick="sell(${p.id})">Sell extra +${VAL[p.rar]}</button>`:""}</div>`}
+<div class="st"><span>ATK ${p.atk}</span><span>DEF ${p.def}</span></div><em class="rt">${p.rar}</em>${n>1?`<u class="x">x${n}</u><button class="sell" onclick="sell(${p.id})">Sell +${VAL[p.rar]}</button>`:""}</div>`}
 async function getP(id){const j=await(await fetch("https://pokeapi.co/api/v2/pokemon/"+id)).json();
 const s=j.stats.map(x=>x.base_stat),b=s.reduce((a,c)=>a+c,0);
 return{id,name:j.name,types:j.types.map(t=>t.type.name),hp:s[0],atk:s[1],def:s[2],rar:rar(b)}}

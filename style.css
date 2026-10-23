@@ -26,8 +26,8 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px}
 .chips button{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:99px;font:600 13px Outfit}
 .chips button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.grid>*{min-width:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+.grid>*{min-width:0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .card{min-width:0;position:relative;border-radius:16px;padding:10px;background:linear-gradient(160deg,#1d2447,#12162b);border:2px solid var(--c);
 box-shadow:0 0 18px -6px var(--c);overflow:hidden}
 .card.common{--c:var(--common)}.card.rare{--c:var(--rare)}.card.epic{--c:var(--epic)}.card.legendary{--c:var(--legendary)}
@@ -60,3 +60,10 @@ background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);bac
 .row{display:flex;gap:14px;align-items:center;padding:14px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
 .row b{width:24px;color:var(--acc)}.row span{flex:1}.row em{font-style:normal;color:var(--mut)}
 html,body{overflow-x:hidden}nav button{line-height:1.2}
+.rt{position:static;display:block;text-align:right;margin-top:4px}
+.x{bottom:auto;top:6px;left:6px;z-index:1}
+.grid .card{padding:6px;border-radius:12px;font-size:11px}
+.grid .card .top{font-size:11px}.grid .top span,.grid .meta,.grid .st{display:none}
+.grid .rt{font-size:8px;text-align:center}.grid .empty{border-radius:12px;font-size:14px}
+.grid .sell{padding:5px;font-size:10px;margin-top:4px}
+.grid .x{left:auto;right:6px;top:26px}
