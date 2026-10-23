@@ -53,3 +53,9 @@ background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);bac
 #auth.show,#verify.show{display:flex}
 #auth input{width:100%;padding:15px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 16px Outfit}
 #auth a,#verify a{color:var(--acc);text-align:center;font-size:14px;cursor:pointer}#err{color:#f87171;font-size:13px;min-height:18px}
+.two{display:flex;gap:10px;margin-top:10px}
+.alt{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:13px 6px;font:600 13px Outfit;cursor:pointer}
+.alt:disabled{color:var(--mut);opacity:.6}
+.sell{width:100%;margin-top:6px;background:#ffffff14;border:0;color:var(--text);border-radius:10px;padding:7px;font:600 12px Outfit}
+.row{display:flex;gap:14px;align-items:center;padding:14px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.row b{width:24px;color:var(--acc)}.row span{flex:1}.row em{font-style:normal;color:var(--mut)}
