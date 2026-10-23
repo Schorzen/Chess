@@ -48,3 +48,21 @@ body{padding:0!important;height:100dvh;overflow:hidden}nav{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 .bbar{width:min(320px,60vw);height:10px;border-radius:9px;background:#ffffff22;overflow:hidden}.bbar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,#7c5cff,#38bdf8,#ffd43b);animation:fill 3.2s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes fill{to{width:90%}}
+
+/* arena scenery, labels and wild-battle controls */
+#abg{position:absolute;inset:0}#abgs{width:100%;height:100%;display:block}
+#arena{background:#8fd3ff}
+.cl{animation:drift 38s ease-in-out infinite alternate}.c2{animation-duration:52s}.c3{animation-duration:46s;animation-direction:alternate-reverse}
+@keyframes drift{from{transform:translateX(-50px)}to{transform:translateX(60px)}}
+.abox,.sp,#atxt,#askip,.atag,#acmd{z-index:1}
+.abox .chip{font-size:9px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:99px;margin-right:4px;vertical-align:1px}
+.abox .chip.e{background:#ef4444;color:#fff}.abox .chip.y{background:#3b82f6;color:#fff}
+.atag{position:absolute;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:1.5px;background:#ef4444;color:#fff;box-shadow:0 4px 10px #0006;pointer-events:none}
+.atag.y{background:#3b82f6}
+#etag{top:calc(12% - 20px);right:calc(10% + 52px)}#ptag{bottom:calc(72% + 4px);left:calc(8% + 62px)}
+#acmd{position:absolute;right:12px;bottom:8px;display:none;gap:8px}#arena.wild #acmd{display:flex}#arena.wild #askip{display:none}
+#arena.wild #edots,#arena.wild #pdots{display:none}
+.cb{padding:9px 12px;border-radius:12px;background:#ffffff1c;border:1px solid #ffffff44;color:#fff;font:600 12px Outfit}
+.thball{position:absolute;width:26px;height:26px;border-radius:50%;border:3px solid #111;background:linear-gradient(var(--bc,#e03131) 0 44%,#111 44% 56%,#fff 56%);z-index:3;pointer-events:none}
+.thball::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#fff;border:2px solid #111}
+#abgs{stroke:none}#abgs path[stroke]{stroke:#6fb467}

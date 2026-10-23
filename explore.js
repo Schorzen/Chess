@@ -32,7 +32,7 @@ function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<(S.lure>Date.now()?.28:.14
 async function encounter(){busyE=true;{const n=document.getElementById("cv");n&&(n.classList.add("flash"),setTimeout(()=>n.classList.remove("flash"),520))}try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 const c=await Promise.all(ids.map(getP)),W={common:62,rare:25,epic:10,legendary:3},tot=c.reduce((a,p)=>a+W[p.rar],0);let q=Math.random()*tot,k=0;for(;k<c.length-1;k++){q-=W[c[k].rar];if(q<=0)break}
 await new Promise(r=>setTimeout(r,450));E.enc=c[k];const p=c[k];const el=document.getElementById("enc");if(!el||view!="explore"){E.enc=null;busyE=false;return}
-el.innerHTML=`<div class="encl" style="width:min(200px,30vw)">${cardHTML(p,1)}</div><div class="encr"><p class="sub">A wild Pokémon appeared!</p><p id="em" style="min-height:22px;font-weight:600"></p><div class="two" id="eb">${ballBtns()}</div></div>`;el.classList.add("show")}catch(e){}busyE=false}
+wildBattle(p)}catch(e){}busyE=false}
 function endEnc(){E.enc=null;E.hold=null;document.getElementById("enc").classList.remove("show");hud()}
 const ballBtns=()=>`<button class="alt" onclick="throwBall('p')">Poké ×${S.balls}</button>${S.gb>0?`<button class="alt" onclick="throwBall('g')">Great ×${S.gb}</button>`:""}${S.ub>0?`<button class="alt" onclick="throwBall('u')">Ultra ×${S.ub}</button>`:""}<button class="alt" onclick="endEnc()">Run</button>`;
 function throwBall(t){eb();const p=E.enc,m=document.getElementById("em"),k={p:"balls",g:"gb",u:"ub"}[t];if(!p||!k)return;
