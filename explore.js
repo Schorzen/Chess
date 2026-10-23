@@ -18,8 +18,8 @@ const ch=d=>`<svg viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d=
 function exploreView(){
 document.getElementById("app").innerHTML=`<div class="ex"><div class="exh"><b id="exb"></b><span class="sub">Walk in tall grass</span></div>
 <canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas><div id="chal"></div><div id="enc"></div>
-<div class="dpad">${[[0,0,"up"],[1,3,"left"],[1,1,"right"],[1,2,"down"]].map(([r,d,n],i)=>`<button style="grid-row:${r+1};grid-column:${{up:2,left:1,right:3,down:2}[n]}" onpointerdown="hold(${d==3?3:d==1?1:d==2?2:0})" onpointerup="rel()" onpointerleave="rel()" onpointercancel="rel()" oncontextmenu="return false">${ch({up:0,right:90,down:180,left:270}[n])}</button>`).join("")}</div></div>`;
-hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
+<div class="joy" id="joy"><div class="knob" id="knob"></div></div></div>`;
+bindJoy();hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
 const hold=d=>{E.hold=d},rel=()=>{E.hold=null};
 addEventListener("keydown",e=>{const k={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key];if(k!=null&&view=="explore"){E.hold=k;e.preventDefault()}});
 addEventListener("keyup",()=>{E.hold=null});
@@ -94,3 +94,10 @@ const f=E.t<1?E.t:0,fx=E.x+(E.tx-E.x)*f,fy=E.y+(E.ty-E.y)*f;let best=null,bd=2.2
 for(const u in others){const o=others[u],d=Math.hypot(o.px-fx,o.py-fy);if(d<bd){bd=d;best=o}}
 const el=document.getElementById("chal");if(!el)return;const w=typeof pendCh!="undefined"&&pendCh&&pendCh.until>now,key=best?best.uid+(w?"w":""):"";
 if(key!==E.ck){E.ck=key;el.innerHTML=best?(w?`<p class="sub">Waiting for ${esc(best.name)} to accept…</p>`:`<button class="go" style="margin-top:10px" onclick="startDuel('${best.uid}')">Challenge ${esc(best.name)}</button>`):""}}
+
+function bindJoy(){const j=document.getElementById("joy"),k=document.getElementById("knob");if(!j)return;let on=false;
+const mv=e=>{const r=j.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const m=r.width/2-k.offsetWidth/2,d=Math.hypot(dx,dy);if(d>m){dx*=m/d;dy*=m/d}
+k.style.transform=`translate(${dx}px,${dy}px)`;E.hold=d<14?null:Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0)};
+const up=()=>{on=false;E.hold=null;k.style.transition="";k.style.transform=""};
+j.onpointerdown=e=>{on=true;j.setPointerCapture(e.pointerId);k.style.transition="none";mv(e)};
+j.onpointermove=e=>{if(on)mv(e)};j.onpointerup=up;j.onpointercancel=up;j.oncontextmenu=()=>false}
