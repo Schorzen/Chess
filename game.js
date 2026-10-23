@@ -1,8 +1,8 @@
-const MAX=3,REGEN=30*60*1000,TOTAL=151,KEY="pokevault_v1";
+const MAX=3,REGEN=30*60*1000,TOTAL=386,KEY="pokevault_v1";
 let S=JSON.parse(localStorage.getItem(KEY)||"null")||{packs:MAX,t:Date.now(),col:{},coins:30,daily:0};
 S.coins=S.coins??30;S.daily=S.daily||0;
 const VAL={common:1,rare:3,epic:8,legendary:20};
-let view="home",filter="all",pending=[];
+let view="home",filter="all",genF="all",typeF="all",pending=[];
 const save=()=>{localStorage.setItem(KEY,JSON.stringify(S));window.cloudSave&&window.cloudSave(S)};
 window.getState=()=>S;window.setState=s=>{S={coins:30,daily:0,...s};save();render()};
 function sell(id){const o=S.col[id];if(!o||o.n<2)return;o.n--;S.coins+=VAL[o.rar];save();render()}
@@ -18,17 +18,21 @@ dt.classList.add("show");document.querySelector(".plist").scrollTop=sc}
 function tp(id){const i=pick.indexOf(id);if(i>=0)pick.splice(i,1);else if(pick.length<3)pick.push(id);teamUI()}
 function saveTeam(){S.team=pick.slice();save();render()}
 function detail(id){const o=S.col[id],p=eff(o),bar=(l,v)=>`<div class="bar2"><span>${l}</span><div><i style="width:${Math.min(100,v/180*100)}%"></i></div><b>${v}</b></div>`;
-dt.innerHTML=cardHTML(o,o.n)+`<div class="bars">${bar("HP",p.hp)}${bar("ATK",p.atk)}${bar("DEF",p.def)}<p class="sub">Level ${o.lv||1}/5 · ${o.n} copies · #${String(id).padStart(3,"0")}</p></div><button class="go" style="max-width:320px" onclick="dt.classList.remove('show')">Close</button>`;dt.classList.add("show")}
+dt.innerHTML=cardHTML(o,o.n)+`<div class="bars">${bar("HP",p.hp)}${bar("ATK",p.atk)}${bar("DEF",p.def)}${mu(o.types)}<p class="sub">Level ${o.lv||1}/5 · ${o.n} copies · #${String(id).padStart(3,"0")}</p></div><button class="go" style="max-width:320px" onclick="dt.classList.remove('show')">Close</button>`;dt.classList.add("show")}
 let last=null,busy=false;
 function sim(A,B){const a=A.map(x=>({...x,h:x.hp*3})),b=B.map(x=>({...x,h:x.hp*3})),log=[],ev=[];let i=0,j=0,t=0;
 const snap=()=>[a.map(x=>Math.max(0,x.h)),b.map(x=>Math.max(0,x.h))];
 while(i<a.length&&j<b.length&&t<80){t++;const x=a[i],y=b[j];
-const d=Math.max(1,Math.round(x.atk*(.7+Math.random()*.6)-y.def*.35));y.h-=d;log.push(cap(x.name)+" hits "+cap(y.name)+" for "+d);ev.push({att:"a",i,j,d,hp:snap(),faint:y.h<=0});
+const mx=typeMult(x.types||[],y.types||[]),d=Math.max(1,Math.round((x.atk*(.7+Math.random()*.6)-y.def*.35)*mx));y.h-=d;log.push(cap(x.name)+" hits "+cap(y.name)+" for "+d);ev.push({att:"a",i,j,d,m:mx,hp:snap(),faint:y.h<=0});
 if(y.h<=0){log.push(cap(y.name)+" fainted");j++;continue}
-const e=Math.max(1,Math.round(y.atk*(.7+Math.random()*.6)-x.def*.35));x.h-=e;log.push(cap(y.name)+" hits "+cap(x.name)+" for "+e);ev.push({att:"b",i,j,d:e,hp:snap(),faint:x.h<=0});
+const my=typeMult(y.types||[],x.types||[]),e=Math.max(1,Math.round((y.atk*(.7+Math.random()*.6)-x.def*.35)*my));x.h-=e;log.push(cap(y.name)+" hits "+cap(x.name)+" for "+e);ev.push({att:"b",i,j,d:e,m:my,hp:snap(),faint:x.h<=0});
 if(x.h<=0){log.push(cap(x.name)+" fainted");i++}}
 return{win:j>=b.length,log,ev}}
-const TC={fire:"#ff7a33",water:"#3d9be0",grass:"#4db366",electric:"#ffd43b",psychic:"#f783ac",ice:"#a5e8ff",poison:"#a855f7",ground:"#c9a24d",rock:"#9c8a6a",bug:"#94c43a",ghost:"#7c5cff",dragon:"#5c6bff",fighting:"#d9480f",flying:"#a5b8ff",normal:"#cfd4e6",fairy:"#ff9ecb"};
+const TY={normal:["","rock steel","ghost"],fire:["grass ice bug steel","fire water rock dragon",""],water:["fire ground rock","water grass dragon",""],electric:["water flying","electric grass dragon","ground"],grass:["water ground rock","fire grass poison flying bug dragon steel",""],ice:["grass ground flying dragon","fire water ice steel",""],fighting:["normal ice rock dark steel","poison flying psychic bug fairy","ghost"],poison:["grass fairy","poison ground rock ghost","steel"],ground:["fire electric poison rock steel","grass bug","flying"],flying:["grass fighting bug","electric rock steel",""],psychic:["fighting poison","psychic steel","dark"],bug:["grass psychic dark","fire fighting poison flying ghost steel fairy",""],rock:["fire ice flying bug","fighting ground steel",""],ghost:["psychic ghost","dark","normal"],dragon:["dragon","steel","fairy"],dark:["psychic ghost","fighting dark fairy",""],steel:["ice rock fairy","fire water electric steel",""],fairy:["fighting dragon dark","fire poison steel",""]};
+const typeMult=(at,dt)=>{if(!at.length)return 1;let best=0;for(const a of at){let m=1;const r=TY[a];if(r)for(const d of dt){if(r[0].split(" ").includes(d))m*=1.6;else if(r[1].split(" ").includes(d))m*=.6;else if(r[2].split(" ").includes(d))m*=.3}best=Math.max(best,m)}return best};
+const mu=ts=>{const st=new Set(),wk=new Set();ts.forEach(a=>(TY[a]?TY[a][0]:"").split(" ").filter(Boolean).forEach(x=>st.add(x)));for(const a in TY)if(ts.some(d=>TY[a][0].split(" ").includes(d)))wk.add(a);
+const ch=s=>[...s].map(t=>`<i class="t" style="background:${TC[t]}33;color:${TC[t]}">${t}</i>`).join("")||"–";return `<p class="sub" style="margin:8px 0 4px">Strong against</p><div class="meta">${ch(st)}</div><p class="sub" style="margin:8px 0 4px">Weak against</p><div class="meta">${ch(wk)}</div>`};
+const TC={steel:"#8aa0b4",dark:"#7a6a58",fire:"#ff7a33",water:"#3d9be0",grass:"#4db366",electric:"#ffd43b",psychic:"#f783ac",ice:"#a5e8ff",poison:"#a855f7",ground:"#c9a24d",rock:"#9c8a6a",bug:"#94c43a",ghost:"#7c5cff",dragon:"#5c6bff",fighting:"#d9480f",flying:"#a5b8ff",normal:"#cfd4e6",fairy:"#ff9ecb"};
 let skipB=false;const wt=ms=>skipB?Promise.resolve():new Promise(r=>setTimeout(r,ms));
 async function playBattle(me,en,r){skipB=false;const $=id=>document.getElementById(id),ar=$("arena");
 ar.classList.add("show");$("ares").style.display="none";let ci=-1,cj=-1;
@@ -43,7 +47,7 @@ $("pdots").textContent="●●●";$("edots").textContent="●●●";$("atxt").
 for(const e of r.ev){if(skipB)break;
 if(e.i!=ci){ci=e.i;show(true,me[ci])}if(e.j!=cj){cj=e.j;show(false,en[cj])}
 const A=e.att=="a",atk=A?me[e.i]:en[e.j],tgt=A?en[e.j]:me[e.i],aEl=$(A?"ps":"es"),tEl=$(A?"es":"ps"),dir=A?1:-1;
-$("atxt").textContent=cap(atk.name)+" attacks!";
+$("atxt").textContent=cap(atk.name)+" attacks!"+(e.m>1.2?" It's super effective!":e.m&&e.m<.9?" Not very effective…":"");
 await aEl.animate([{transform:"translate(0,0)"},{transform:`translate(${dir*50}px,${-dir*30}px)`},{transform:"translate(0,0)"}],{duration:380,easing:"ease-in-out"}).finished;
 fx(tEl,TC[atk.types[0]]||"#fff");tEl.animate([{transform:"translateX(0)",filter:"brightness(1)"},{transform:"translateX(-10px)",filter:"brightness(3)"},{transform:"translateX(10px)"},{transform:"translateX(0)",filter:"brightness(1)"}],{duration:380});
 flt(tEl,"-"+e.d);hp(!A,tgt,A?e.hp[1][e.j]:e.hp[0][e.i]);$("pdots").textContent=dots(e.hp[0]);$("edots").textContent=dots(e.hp[1]);await wt(520);
@@ -68,7 +72,7 @@ if(r.done.length){save();hdr()}
 OFFERS={};r.open.forEach(t=>OFFERS[t.id]=t);const me=trade.uid(),mine=Object.values(S.col).filter(p=>p.n>1);
 app.innerHTML=`<h2 style="margin-bottom:8px">Trade</h2>${tmsg?`<p class="sub" style="margin-bottom:10px">${tmsg}</p>`:""}
 <div class="post"><p class="sub">Offer one of your extras. It leaves your collection until someone accepts, or you cancel.</p>`+
-(mine.length?`<select id="tg">${mine.map(p=>`<option value="${p.id}">${cap(p.name)} x${p.n}</option>`).join("")}</select><input id="tw" type="number" min="1" max="151" placeholder="Want # (optional)"><button class="go" onclick="postTrade()">Post offer</button>`:`<p class="sub">You need a duplicate card to offer.</p>`)+
+(mine.length?`<select id="tg">${mine.map(p=>`<option value="${p.id}">${cap(p.name)} x${p.n}</option>`).join("")}</select><input id="tw" type="number" min="1" max="386" placeholder="Want # (optional)"><button class="go" onclick="postTrade()">Post offer</button>`:`<p class="sub">You need a duplicate card to offer.</p>`)+
 `</div><h3 style="margin:18px 0 10px">Open offers</h3>`+(r.open.length?r.open.map(t=>{const e=elig(t);
 return `<div class="offer"><img src="${img(t.give.id)}" alt=""><div class="i"><b>${cap(t.give.name)}</b>${t.give.rar} · from ${esc(t.fromName)}<br>Wants: ${t.want?"#"+t.want:"any "+t.give.rar}</div>`+
 (t.from==me?`<button class="sm" onclick="cancelTrade('${t.id}')">Cancel</button>`:`<button class="sm" ${e?"":"disabled"} onclick="acceptTrade('${t.id}')">${e?"Swap":"No match"}</button>`)+`</div>`}).join(""):`<p class="sub">No open offers.</p>`);tmsg="";
@@ -88,7 +92,7 @@ function regen(){const n=Date.now();if(S.packs>=MAX){S.t=n;return}
 const g=Math.floor((n-S.t)/REGEN);if(g>0){S.packs=Math.min(MAX,S.packs+g);S.t=S.packs>=MAX?n:S.t+g*REGEN;save()}}
 function cardHTML(p,n){return `<div class="card ${p.rar}"><div class="top"><b>${cap(p.name)}${(p.lv||1)>1?` Lv${p.lv}`:""}</b><span>HP ${p.hp}</span></div>
 <div class="art"><img loading="lazy" src="${img(p.id)}" alt="${p.name}"></div>
-<div class="meta">${p.types.map(t=>`<i class="t">${t}</i>`).join("")}</div>
+<div class="meta">${p.types.map(t=>`<i class="t" style="background:${TC[t]||"#888"}33;color:${TC[t]||"#ccc"}">${t}</i>`).join("")}</div>
 <div class="st"><span>ATK ${p.atk}</span><span>DEF ${p.def}</span></div><em class="rt">${p.rar}</em>${n>1?`<u class="x">x${n}</u><div class="btns"><button class="sell" onclick="event.stopPropagation();sell(${p.id})">Sell +${VAL[p.rar]}</button>${(p.lv||1)<5&&n-1>=(p.lv||1)?`<button class="sell up" onclick="event.stopPropagation();upg(${p.id})">Lv up</button>`:""}</div>`:""}</div>`}
 const PC={};
 async function getP(id){if(PC[id])return PC[id];return PC[id]=await getP2(id)}
@@ -117,7 +121,7 @@ n1.classList.toggle("on",view=="home");n2.classList.toggle("on",view=="col");n3.
 const app=document.getElementById("app");
 if(view=="home"){const mins=Math.max(1,Math.ceil((REGEN-(Date.now()-S.t))/60000));const left=864e5-(Date.now()-S.daily),ready=left<=0;
 app.innerHTML=`<section class="hero"><div class="pack"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.500-.5z"/></svg></div>
-<h2>Gen 1 Booster</h2><p class="sub">5 random cards per pack</p><div class="dots">${Array.from({length:MAX},(_,i)=>`<i class="${i<S.packs?"on":""}"></i>`).join("")}</div>
+<h2>Gen 1–3 Booster</h2><p class="sub">5 random cards per pack</p><div class="dots">${Array.from({length:MAX},(_,i)=>`<i class="${i<S.packs?"on":""}"></i>`).join("")}</div>
 <p class="sub" style="margin-bottom:16px">${S.packs>=MAX?"Packs full":"Next pack in ~"+mins+" min"}</p>
 <button class="go" ${S.packs<1?"disabled":""} onclick="openPack()">Open pack</button>
 <div class="two"><button class="alt" ${S.coins<300?"disabled":""} onclick="openPack(true)">Premium · boosted odds · 300</button><button class="alt" ${ready?"":"disabled"} onclick="claim()">${ready?"Daily +20":"Daily in "+Math.ceil(left/36e5)+"h"}</button></div></section>`}
@@ -129,9 +133,11 @@ else if(view=="explore"){exploreView()}
 else if(view=="trade"){tradeView()}
 else if(view=="top"){app.innerHTML=`<p class="sub">Loading…</p>`;(window.cloud?cloud.top():Promise.resolve([])).then(r=>{if(view!="top")return;app.innerHTML=`<h2 style="margin-bottom:12px">Leaderboard</h2>`+(r.length?r.map((u,i)=>`<div class="row"><b>${i+1}</b><span>${esc(u.name||"Trainer")}</span><em>${u.count||0}/${TOTAL}</em></div>`).join(""):`<p class="sub">No players yet.</p>`)}).catch(()=>app.innerHTML=`<p class="sub">Could not load leaderboard.</p>`)}
 else{const list=Object.values(S.col);const cards=filter=="all"?null:filter;
+const inGen=i=>genF=="all"||(genF=="1"?i<=151:genF=="2"?i>151&&i<=251:i>251);
+const gens=["all","1","2","3"].map(g=>`<button class="${genF==g?"on":""}" onclick="genF='${g}';render()">${g=="all"?"All gens":"Gen "+g}</button>`).join(""),tys=["all",...Object.keys(TC)].map(t=>`<button class="${typeF==t?"on":""}" style="${t!="all"&&typeF==t?`background:${TC[t]};border-color:${TC[t]}`:""}" onclick="typeF='${t}';render()">${cap(t)}</button>`).join("");
 const chips=["all","common","rare","epic","legendary"].map(f=>`<button class="${filter==f?"on":""}" onclick="filter='${f}';render()">${cap(f)}</button>`).join("");
-let html=`<div class="bar"><div style="width:${owned/TOTAL*100}%"></div></div><div class="chips">${chips}</div><div class="grid">`;
-for(let i=1;i<=TOTAL;i++){const p=S.col[i];
-if(p&&(!cards||p.rar==cards))html+=`<div onclick="detail(${i})">${cardHTML(p,p.n)}</div>`;else if(!p&&!cards)html+=`<div class="empty">#${String(i).padStart(3,"0")}</div>`}
+let html=`<div class="bar"><div style="width:${owned/TOTAL*100}%"></div></div><div class="chips">${chips}</div><div class="chips chsm">${gens}</div><div class="chips chsm">${tys}</div><div class="grid">`;
+for(let i=1;i<=TOTAL;i++){if(!inGen(i))continue;const p=S.col[i];
+if(p&&(!cards||p.rar==cards)&&(typeF=="all"||p.types.includes(typeF)))html+=`<div onclick="detail(${i})">${cardHTML(p,p.n)}</div>`;else if(!p&&!cards&&typeF=="all")html+=`<div class="empty">#${String(i).padStart(3,"0")}</div>`}
 app.innerHTML=html+"</div>"}}
 render();setInterval(()=>{if(view=="home"&&!pending.length)render()},30000);

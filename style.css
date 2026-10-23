@@ -109,3 +109,6 @@ nav button{font-size:10px;padding:6px 2px}
 #chal{min-height:0;text-align:center}.ex{position:relative}
 .joy{width:160px;height:160px;border-radius:50%;margin:18px auto 0;background:radial-gradient(circle,#232a52,#12162b 70%);border:2px solid var(--line);position:relative;touch-action:none;box-shadow:inset 0 0 24px #0008}
 .knob{position:absolute;left:46px;top:46px;width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#9a85ff,#6246ea);box-shadow:0 6px 16px #0007;pointer-events:none;transition:transform .1s}
+.chips.chsm{margin-top:-6px}.chips.chsm button{padding:5px 11px;font-size:12px}
+.grid .meta{display:flex;justify-content:center;gap:3px;margin-top:2px}.grid .t{font-size:8px;padding:1px 6px}
+.bars>.sub:last-child{margin-top:12px}
