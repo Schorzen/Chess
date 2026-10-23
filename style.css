@@ -26,16 +26,16 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 .chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px}
 .chips button{flex:none;background:var(--panel);border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:99px;font:600 13px Outfit}
 .chips button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid>*{min-width:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
-.card{position:relative;border-radius:16px;padding:10px;background:linear-gradient(160deg,#1d2447,#12162b);border:2px solid var(--c);
+.card{min-width:0;position:relative;border-radius:16px;padding:10px;background:linear-gradient(160deg,#1d2447,#12162b);border:2px solid var(--c);
 box-shadow:0 0 18px -6px var(--c);overflow:hidden}
 .card.common{--c:var(--common)}.card.rare{--c:var(--rare)}.card.epic{--c:var(--epic)}.card.legendary{--c:var(--legendary)}
 .card.epic::after,.card.legendary::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;
 background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);background-size:250% 100%;animation:shine 3s linear infinite}
 @keyframes shine{from{background-position:200% 0}to{background-position:-100% 0}}
 .top{display:flex;justify-content:space-between;font-size:13px;text-transform:capitalize}.top span{color:var(--mut)}
-.art{aspect-ratio:1;display:grid;place-items:center}.art img{width:92%;filter:drop-shadow(0 8px 10px #0008)}
+.art{position:relative;width:100%;aspect-ratio:1/1}.art img{position:absolute;inset:4%;width:92%;height:92%;object-fit:contain;filter:drop-shadow(0 8px 10px #0008)}
 .meta{display:flex;gap:4px;flex-wrap:wrap}.t{font-style:normal;font-size:10px;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:#ffffff14}
 .st{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:6px}
 .rt{position:absolute;right:10px;bottom:28px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--c);font-style:normal;font-weight:800}
@@ -59,3 +59,4 @@ background:linear-gradient(115deg,transparent 30%,#fff6 50%,transparent 70%);bac
 .sell{width:100%;margin-top:6px;background:#ffffff14;border:0;color:var(--text);border-radius:10px;padding:7px;font:600 12px Outfit}
 .row{display:flex;gap:14px;align-items:center;padding:14px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
 .row b{width:24px;color:var(--acc)}.row span{flex:1}.row em{font-style:normal;color:var(--mut)}
+html,body{overflow-x:hidden}nav button{line-height:1.2}
