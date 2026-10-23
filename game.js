@@ -63,14 +63,14 @@ let tmsg="",OFFERS={};
 const elig=t=>t.want?(S.col[t.want]&&S.col[t.want].n>1?S.col[t.want]:null):Object.values(S.col).find(p=>p.n>1&&p.rar==t.give.rar);
 async function tradeView(){const app=document.getElementById("app");app.innerHTML=`<p class="sub">Loading…</p>`;
 try{const r=await trade.list();if(view!="trade")return;
-for(const t of r.done){await trade.claim(t.id);addCard(t.got);tmsg+=cap(t.got.name)+" arrived from "+t.toName+". "}
+for(const t of r.done){await trade.claim(t.id);addCard(t.got);tmsg+=cap(t.got.name)+" arrived from "+esc(t.toName)+". "}
 if(r.done.length){save();hdr()}
 OFFERS={};r.open.forEach(t=>OFFERS[t.id]=t);const me=trade.uid(),mine=Object.values(S.col).filter(p=>p.n>1);
 app.innerHTML=`<h2 style="margin-bottom:8px">Trade</h2>${tmsg?`<p class="sub" style="margin-bottom:10px">${tmsg}</p>`:""}
 <div class="post"><p class="sub">Offer one of your extras. It leaves your collection until someone accepts, or you cancel.</p>`+
 (mine.length?`<select id="tg">${mine.map(p=>`<option value="${p.id}">${cap(p.name)} x${p.n}</option>`).join("")}</select><input id="tw" type="number" min="1" max="151" placeholder="Want # (optional)"><button class="go" onclick="postTrade()">Post offer</button>`:`<p class="sub">You need a duplicate card to offer.</p>`)+
 `</div><h3 style="margin:18px 0 10px">Open offers</h3>`+(r.open.length?r.open.map(t=>{const e=elig(t);
-return `<div class="offer"><img src="${img(t.give.id)}" alt=""><div class="i"><b>${cap(t.give.name)}</b>${t.give.rar} · from ${t.fromName}<br>Wants: ${t.want?"#"+t.want:"any "+t.give.rar}</div>`+
+return `<div class="offer"><img src="${img(t.give.id)}" alt=""><div class="i"><b>${cap(t.give.name)}</b>${t.give.rar} · from ${esc(t.fromName)}<br>Wants: ${t.want?"#"+t.want:"any "+t.give.rar}</div>`+
 (t.from==me?`<button class="sm" onclick="cancelTrade('${t.id}')">Cancel</button>`:`<button class="sm" ${e?"":"disabled"} onclick="acceptTrade('${t.id}')">${e?"Swap":"No match"}</button>`)+`</div>`}).join(""):`<p class="sub">No open offers.</p>`);tmsg="";
 }catch(e){app.innerHTML=`<p class="sub">Could not load trades. Try again.</p>`}}
 async function postTrade(){const id=+document.getElementById("tg").value,w=+document.getElementById("tw").value||null;if(!takeCard(id))return;save();
@@ -80,6 +80,7 @@ async function acceptTrade(id){const t=OFFERS[id],m=elig(t);if(!m)return;
 try{await trade.accept(id,slim(m))}catch(e){tmsg="That offer is gone.";tradeView();return}
 takeCard(m.id);addCard(t.give);save();tmsg="You got "+cap(t.give.name)+"!";tradeView()}
 function claim(){if(Date.now()-S.daily<864e5)return;S.coins+=20;S.daily=Date.now();save();render()}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const img=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 const rar=b=>b<320?"common":b<430?"rare":b<520?"epic":"legendary";
@@ -126,7 +127,7 @@ app.innerHTML=`<h2 style="margin-bottom:6px">Battle</h2><p class="sub" style="ma
 (last?`<div class="res" style="margin-top:16px">${last.win?"Victory":"Defeat"} · +${last.reward} coins</div><div class="log">${last.log.join("<br>")}</div>`:"")}
 else if(view=="explore"){exploreView()}
 else if(view=="trade"){tradeView()}
-else if(view=="top"){app.innerHTML=`<p class="sub">Loading…</p>`;(window.cloud?cloud.top():Promise.resolve([])).then(r=>{if(view!="top")return;app.innerHTML=`<h2 style="margin-bottom:12px">Leaderboard</h2>`+(r.length?r.map((u,i)=>`<div class="row"><b>${i+1}</b><span>${u.name||"Trainer"}</span><em>${u.count||0}/${TOTAL}</em></div>`).join(""):`<p class="sub">No players yet.</p>`)}).catch(()=>app.innerHTML=`<p class="sub">Could not load leaderboard.</p>`)}
+else if(view=="top"){app.innerHTML=`<p class="sub">Loading…</p>`;(window.cloud?cloud.top():Promise.resolve([])).then(r=>{if(view!="top")return;app.innerHTML=`<h2 style="margin-bottom:12px">Leaderboard</h2>`+(r.length?r.map((u,i)=>`<div class="row"><b>${i+1}</b><span>${esc(u.name||"Trainer")}</span><em>${u.count||0}/${TOTAL}</em></div>`).join(""):`<p class="sub">No players yet.</p>`)}).catch(()=>app.innerHTML=`<p class="sub">Could not load leaderboard.</p>`)}
 else{const list=Object.values(S.col);const cards=filter=="all"?null:filter;
 const chips=["all","common","rare","epic","legendary"].map(f=>`<button class="${filter==f?"on":""}" onclick="filter='${f}';render()">${cap(f)}</button>`).join("");
 let html=`<div class="bar"><div style="width:${owned/TOTAL*100}%"></div></div><div class="chips">${chips}</div><div class="grid">`;

@@ -9,6 +9,7 @@ const px=MW>>1;for(let y=2;y<MH-2;y++){m[y][px]=3;m[y][px+1]=3}for(let x=2;x<MW-
 for(let i=0;i<50;i++){const x=2+Math.floor(r()*(MW-4)),y=2+Math.floor(r()*(MH-4));if(m[y][x]==0)m[y][x]=4}
 return m})();
 const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];
+let others={};
 let E={x:17,y:14,tx:17,ty:14,t:1,d:2,hold:null,step:0,enc:null,last:0},runId=0,busyE=false;
 function eb(){if(S.balls==null){S.balls=10;S.bl=Date.now()}const n=Date.now();
 if(S.balls>=10)S.bl=n;else{const g=Math.floor((n-S.bl)/24e4);if(g>0){S.balls=Math.min(10,S.balls+g);S.bl=S.balls>=10?n:S.bl+g*24e4}}}
@@ -16,17 +17,17 @@ function hud(){eb();const e=document.getElementById("exb");if(e)e.textContent="P
 const ch=d=>`<svg viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d="M6 15l6-6 6 6"/></svg>`;
 function exploreView(){
 document.getElementById("app").innerHTML=`<div class="ex"><div class="exh"><b id="exb"></b><span class="sub">Walk in tall grass</span></div>
-<canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas><div id="enc"></div>
+<canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas><div id="chal"></div><div id="enc"></div>
 <div class="dpad">${[[0,0,"up"],[1,3,"left"],[1,1,"right"],[1,2,"down"]].map(([r,d,n],i)=>`<button style="grid-row:${r+1};grid-column:${{up:2,left:1,right:3,down:2}[n]}" onpointerdown="hold(${d==3?3:d==1?1:d==2?2:0})" onpointerup="rel()" onpointerleave="rel()" onpointercancel="rel()" oncontextmenu="return false">${ch({up:0,right:90,down:180,left:270}[n])}</button>`).join("")}</div></div>`;
-hud();E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
+hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
 const hold=d=>{E.hold=d},rel=()=>{E.hold=null};
 addEventListener("keydown",e=>{const k={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key];if(k!=null&&view=="explore"){E.hold=k;e.preventDefault()}});
 addEventListener("keyup",()=>{E.hold=null});
 const walk=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&[0,2,3,4].includes(EMAP[y][x]);
-function loop(ts,id){if(view!="explore"||id!==runId)return;const dt=E.last?Math.min(50,ts-E.last):16;E.last=ts;
+function loop(ts,id){if(view!="explore"){if(id===runId){window.mp&&(mp.stop(),mp.leave());others={}}return}if(id!==runId)return;const dt=E.last?Math.min(50,ts-E.last):16;E.last=ts;
 if(E.t<1){E.t=Math.min(1,E.t+dt/150);if(E.t>=1){E.x=E.tx;E.y=E.ty;E.step^=1;arrive()}}
 else if(E.hold!=null&&!E.enc&&!busyE){E.d=E.hold;const[a,b]=DIRS[E.d],nx=E.x+a,ny=E.y+b;if(walk(nx,ny)){E.tx=nx;E.ty=ny;E.t=0}}
-const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
+social();const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
 function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<.14)encounter()}
 async function encounter(){busyE=true;{const n=document.getElementById("cv");n&&(n.classList.add("flash"),setTimeout(()=>n.classList.remove("flash"),520))}try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 const c=await Promise.all(ids.map(getP)),W={common:62,rare:25,epic:10,legendary:3},tot=c.reduce((a,p)=>a+W[p.rar],0);let q=Math.random()*tot,k=0;for(;k<c.length-1;k++){q-=W[c[k].rar];if(q<=0)break}
@@ -46,8 +47,8 @@ const x0=Math.floor(ox/TS),x1=Math.ceil((ox+VW*TS)/TS),y0=Math.floor(oy/TS),y1=M
 for(let y=y0-1;y<=y1;y++)for(let x=x0;x<=x1;x++)ground(c,at(x,y),x,y,x*TS-ox,y*TS-oy,tm);
 const px=Math.round(fx*TS-ox),py=Math.round(fy*TS-oy),objs=[];
 for(let y=y0;y<=y1+1;y++)for(let x=x0-1;x<=x1;x++)if(at(x,y)==1&&y>=0&&x>=0&&y<MH&&x<MW)objs.push([y,0,x]);
-objs.push([fy+.01,1]);objs.sort((a,b)=>a[0]-b[0]);
-for(const o of objs){if(o[1])player(c,px,py,tm);else tree(c,o[2],o[0],o[2]*TS-ox,o[0]*TS-oy,tm)}
+objs.push([fy+.01,1]);for(const u in others)objs.push([others[u].py+.011,2,others[u]]);objs.sort((a,b)=>a[0]-b[0]);
+for(const o of objs){if(o[1]==1)player(c,px,py,tm);else if(o[1]==2){const u=o[2],qx=Math.round(u.px*TS-ox),qy=Math.round(u.py*TS-oy);player(c,qx,qy,tm,{d:u.d,mv:u.mv,s:Math.floor(tm*6)%2,k:"#3b82f6"});tag(c,qx,qy,u.name)}else tree(c,o[2],o[0],o[2]*TS-ox,o[0]*TS-oy,tm)}
 if(at(Math.round(fx),Math.round(fy+.3))==2)blades(c,Math.round(fx),Math.round(fy+.3),px,py+6,tm,true);
 const g=c.createRadialGradient(VW*TS/2,VH*TS/2,VH*TS*.45,VW*TS/2,VH*TS/2,VW*TS*.75);g.addColorStop(0,"#0000");g.addColorStop(1,"#0a1a2a55");c.fillStyle=g;c.fillRect(0,0,VW*TS,VH*TS)}
 function blades(c,x,y,px,py,tm,front){const cols=["#2f8a44","#43b05a","#7fd678"];
@@ -68,7 +69,7 @@ c.fillStyle="#5a3a1e";c.fillRect(px+13,py+20,7,11);c.fillStyle="#7b5230";c.fillR
 c.fillStyle=v>.5?"#1d6a34":"#1b6330";c.beginPath();c.arc(px+16,py+10,15,0,7);c.fill();
 c.fillStyle="#2c8a46";c.beginPath();c.arc(px+13,py+8,11,0,7);c.fill();c.fillStyle="#4db366";c.beginPath();c.arc(px+9,py+4,5,0,7);c.fill();
 c.fillStyle="#1d6a34";c.fillRect(px+20,py+10,2,2);c.fillRect(px+10,py+14,2,2);c.fillRect(px+22,py+16,2,2)}
-function player(c,x,y,tm){const d=E.d,mv=E.t<1,s=mv?E.step:0,bob=mv?-Math.round(Math.abs(Math.sin(E.t*Math.PI))*2):0;
+function player(c,x,y,tm,o){const d=o?o.d:E.d,mv=o?o.mv:E.t<1,s=mv?(o?o.s:E.step):0,bob=mv?-Math.round(Math.abs(Math.sin((o?tm*5:E.t)*Math.PI))*2):0,k=o?o.k:"#e03131";
 c.fillStyle="#0004";c.beginPath();c.ellipse(x+16,y+29,9,3.5,0,0,7);c.fill();
 const Y=y+bob;
 c.fillStyle="#2b2f45";c.fillRect(x+10,Y+24+(mv&&s?1:0),5,6);c.fillRect(x+17,Y+24+(mv&&!s?1:0),5,6);
@@ -79,6 +80,17 @@ if(d==0){c.fillStyle="#f5c518";c.fillRect(x+11,Y+15,10,8)}
 c.fillStyle="#f2c9a0";if(d==1)c.fillRect(x+23,Y+17,3,6);if(d==3)c.fillRect(x+6,Y+17,3,6);if(d==2||d==0){c.fillRect(x+6,Y+16+(mv?s:0),3,7);c.fillRect(x+23,Y+16+(mv?1-s:0),3,7)}
 c.fillRect(x+10,Y+5,12,11);
 if(d==0){c.fillStyle="#3a2a1a";c.fillRect(x+10,Y+5,12,9)}
-c.fillStyle="#e03131";c.fillRect(x+8,Y+1,16,7);c.fillRect(x+9,Y+0,14,2);
+c.fillStyle=k;c.fillRect(x+8,Y+1,16,7);c.fillRect(x+9,Y+0,14,2);
 if(d==2){c.fillRect(x+9,Y+7,14,2);c.fillStyle="#fff";c.fillRect(x+14,Y+2,4,4)}if(d==1)c.fillRect(x+20,Y+6,6,3);if(d==3)c.fillRect(x+6,Y+6,6,3);
 c.fillStyle="#1f1f2e";if(d==2){c.fillRect(x+12,Y+11,2,3);c.fillRect(x+18,Y+11,2,3)}if(d==1)c.fillRect(x+19,Y+11,2,3);if(d==3)c.fillRect(x+11,Y+11,2,3)}
+
+function tag(c,x,y,n){c.font="bold 9px sans-serif";const w=c.measureText(n).width+8;c.fillStyle="#000b";c.fillRect(x+16-w/2,y-10,w,12);c.fillStyle="#fff";c.textAlign="center";c.fillText(n,x+16,y-1);c.textAlign="left"}
+function syncOthers(list){const me=mp.uid(),now=Date.now();for(const p of list){if(p.uid==me)continue;const o=others[p.uid];
+if(o){if(o.ts!=p.ts)o.rx=now;o.ts=p.ts;o.tx=p.x;o.ty=p.y;o.d=p.d;o.name=p.name}else if(now-p.ts<6e4)others[p.uid]={uid:p.uid,name:p.name,tx:p.x,ty:p.y,px:p.x,py:p.y,d:p.d,mv:false,ts:p.ts,rx:now}}}
+function social(){const now=Date.now();
+for(const u in others){const o=others[u];if(now-o.rx>4e4){delete others[u];continue}o.px+=(o.tx-o.px)*.18;o.py+=(o.ty-o.py)*.18;o.mv=Math.abs(o.tx-o.px)+Math.abs(o.ty-o.py)>.08}
+if(window.mp&&(E.tx!=E.lx||E.ty!=E.ly||E.d!=E.ld||now-E.ls>8e3)&&now-E.ls>700){E.lx=E.tx;E.ly=E.ty;E.ld=E.d;E.ls=now;mp.pos(E.tx,E.ty,E.d)}
+const f=E.t<1?E.t:0,fx=E.x+(E.tx-E.x)*f,fy=E.y+(E.ty-E.y)*f;let best=null,bd=2.2;
+for(const u in others){const o=others[u],d=Math.hypot(o.px-fx,o.py-fy);if(d<bd){bd=d;best=o}}
+const el=document.getElementById("chal");if(!el)return;const w=typeof pendCh!="undefined"&&pendCh&&pendCh.until>now,key=best?best.uid+(w?"w":""):"";
+if(key!==E.ck){E.ck=key;el.innerHTML=best?(w?`<p class="sub">Waiting for ${esc(best.name)} to accept…</p>`:`<button class="go" style="margin-top:10px" onclick="startDuel('${best.uid}')">Challenge ${esc(best.name)}</button>`):""}}

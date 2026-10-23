@@ -1,6 +1,6 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile,sendEmailVerification} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction,onSnapshot,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyCkiiYyPINqFW98QnvFUou7zUYtq2Dz-5k",authDomain:"pokevault-6dae1.firebaseapp.com",projectId:"pokevault-6dae1",storageBucket:"pokevault-6dae1.firebasestorage.app",messagingSenderId:"1042434349246",appId:"1:1042434349246:web:0e95b8fb980f5c30e526ef"};
 const auth=getAuth(initializeApp(cfg)),db=getFirestore();
 const $=id=>document.getElementById(id);
@@ -19,6 +19,18 @@ window.trade={
  accept:(id,got)=>runTransaction(db,async tx=>{const r=doc(db,"trades",id),s=await tx.get(r);
   if(!s.exists()||s.data().status!=="open")throw new Error("gone");tx.update(r,{status:"accepted",to:uid,toName:nm(),got})})
 };
+let unsubP=null,unsubD=[];
+const stopD=()=>{unsubD.forEach(f=>f());unsubD=[]};
+function watchDuels(){stopD();for(const k of["to","from"])unsubD.push(onSnapshot(query(collection(db,"duels"),where(k,"==",uid)),s=>s.docChanges().forEach(c=>{if(c.type!="removed"&&window.onDuel)window.onDuel({id:c.doc.id,...c.doc.data()},k)}),()=>{}))}
+window.mp={uid:()=>uid,
+ start(cb){this.stop();unsubP=onSnapshot(collection(db,"presence"),s=>cb(s.docs.map(d=>({uid:d.id,...d.data()}))),()=>{})},
+ stop(){unsubP&&unsubP();unsubP=null},
+ pos:(x,y,d)=>uid&&setDoc(doc(db,"presence",uid),{x,y,d,name:nm(),ts:Date.now()}).catch(()=>{}),
+ leave:()=>uid&&deleteDoc(doc(db,"presence",uid)).catch(()=>{}),
+ challenge:(to,toName,team)=>setDoc(doc(db,"duels",uid+"_"+to),{from:uid,to,fromName:nm(),toName,status:"pending",teamFrom:team,ts:Date.now()}),
+ accept:(id,team)=>updateDoc(doc(db,"duels",id),{status:"accepted",teamTo:team}),
+ decline:id=>updateDoc(doc(db,"duels",id),{status:"declined"}),
+ finish:(id,res)=>updateDoc(doc(db,"duels",id),{status:"done",res,t2:Date.now()})};
 window.cloud={
  toggle(){up=!up;$("nm").style.display=up?"":"none";$("sb").textContent=up?"Create account":"Sign in";
   $("sw").textContent=up?"Have an account? Sign in":"New here? Create account";$("err").textContent=""},
@@ -39,10 +51,10 @@ async function enter(u){
  if(!u.emailVerified){uid=null;$("auth").classList.remove("show");$("vm").textContent=u.email;$("verify").classList.add("show");return}
  $("auth").classList.remove("show");$("verify").classList.remove("show");
  const s=await getDoc(doc(db,"users",u.uid));
- uid=u.uid;
+ uid=u.uid;watchDuels();
  if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now()})}
  else window.cloudSave(getState());
 }
 onAuthStateChanged(auth,u=>{
- if(!u){uid=null;$("so").style.display="none";$("verify").classList.remove("show");$("auth").classList.add("show");return}
+ if(!u){uid=null;stopD();$("so").style.display="none";$("verify").classList.remove("show");$("auth").classList.add("show");return}
  enter(u)});
