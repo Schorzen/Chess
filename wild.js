@@ -1,9 +1,9 @@
 // Wild Pokémon battles in Explore (uses the battle arena): attack to weaken, then throw a ball
 const WB={},$w=id=>document.getElementById(id),wait=ms=>new Promise(r=>setTimeout(r,ms));
 const SH=[{transform:"translateX(0)",filter:"brightness(1)"},{transform:"translateX(-10px)",filter:"brightness(3)"},{transform:"translateX(10px)"},{transform:"translateX(0)",filter:"brightness(1)"}];
-function wShow(a,p){const el=$w(a?"ps":"es");el.getAnimations().forEach(x=>x.cancel());el.style.visibility="visible";el.innerHTML=`<img src="${img(p.id)}" alt="">`;
+function wShow(a,p){arInfo(a,p);const el=$w(a?"ps":"es");el.getAnimations().forEach(x=>x.cancel());el.style.visibility="visible";el.innerHTML=`<img src="${img(p.id)}" alt="">`;
 $w(a?"pnm":"enm").textContent=cap(p.name)+((p.lv||1)>1?" Lv"+p.lv:"");el.animate([{transform:`translateX(${a?-90:90}px)`,opacity:0},{transform:"none",opacity:1}],{duration:450})}
-function wHp(a,v,m){const b=$w(a?"phb":"ehb"),q=Math.max(0,v)/m;b.style.width=q*100+"%";b.style.background=q>.5?"#4ade80":q>.2?"#facc15":"#f87171"}
+function wHp(a,v,m){const b=$w(a?"phb":"ehb"),q=Math.max(0,v)/m;b.style.width=q*100+"%";b.style.background=q>.5?"#4ade80":q>.2?"#facc15":"#f87171";{const t=$w(a?"phpt":"ehpt");t.textContent="HP "+Math.max(0,Math.round(v))+"/"+m+" · "+(t.dataset.st||"")}}
 function wPos(el){const r=$w("arena").getBoundingClientRect(),b=el.getBoundingClientRect();return[b.left-r.left+b.width/2,b.top-r.top+b.height/2]}
 function wFx(el,col){const[x,y]=wPos(el),d=document.createElement("i");d.className="fx";d.style.cssText=`left:${x}px;top:${y}px;background:radial-gradient(${col},${col}00 70%)`;$w("arena").appendChild(d);
 d.animate([{transform:"translate(-50%,-50%) scale(.2)",opacity:1},{transform:"translate(-50%,-50%) scale(3)",opacity:0}],{duration:520}).onfinish=()=>d.remove()}

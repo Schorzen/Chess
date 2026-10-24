@@ -66,3 +66,19 @@ body{padding:0!important;height:100dvh;overflow:hidden}nav{display:none}
 .thball{position:absolute;width:26px;height:26px;border-radius:50%;border:3px solid #111;background:linear-gradient(var(--bc,#e03131) 0 44%,#111 44% 56%,#fff 56%);z-index:3;pointer-events:none}
 .thball::after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#fff;border:2px solid #111}
 #abgs{stroke:none}#abgs path[stroke]{stroke:#6fb467}
+
+/* stats inside battle boxes */
+.hpt{font-size:11px;color:#cbd5e1;margin-top:5px;font-weight:600}
+.meta2{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px;font-size:11px}
+.abox .meta2 span{letter-spacing:0;color:#cbd5e1;font-size:11px}
+.abox .meta2 .wkl{color:#fca5a5;font-weight:600}
+.rr{text-transform:uppercase;font-weight:800;font-size:10px;letter-spacing:1px}
+.abox .rr.common{color:var(--common)}.abox .rr.rare{color:var(--rare)}.abox .rr.epic{color:var(--epic)}.abox .rr.legendary{color:var(--legendary)}
+#ebox,#pbox{width:34%}
+
+/* compact boxes */
+#ptag{display:none}
+#ebox,#pbox{width:36%;padding:8px 12px}#ebox{top:10px;left:10px}
+.abox .hpt{margin-top:4px;font-size:10.5px}.abox .meta2{margin-top:4px;gap:4px}
+.wkrow{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+#es{top:5%;height:42%}#ps{bottom:20%;height:46%}#etag{top:calc(5% - 16px)}

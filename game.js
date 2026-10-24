@@ -37,11 +37,15 @@ const mu=ts=>{const st=new Set(),wk=new Set();ts.forEach(a=>(TY[a]?TY[a][0]:"").
 const ch=s=>[...s].map(t=>`<i class="t" style="background:${TC[t]}33;color:${TC[t]}">${t}</i>`).join("")||"–";return `<p class="sub" style="margin:8px 0 4px">Strong against</p><div class="meta">${ch(st)}</div><p class="sub" style="margin:8px 0 4px">Weak against</p><div class="meta">${ch(wk)}</div>`};
 const TC={steel:"#8aa0b4",dark:"#7a6a58",fire:"#ff7a33",water:"#3d9be0",grass:"#4db366",electric:"#ffd43b",psychic:"#f783ac",ice:"#a5e8ff",poison:"#a855f7",ground:"#c9a24d",rock:"#9c8a6a",bug:"#94c43a",ghost:"#7c5cff",dragon:"#5c6bff",fighting:"#d9480f",flying:"#a5b8ff",normal:"#cfd4e6",fairy:"#ff9ecb"};
 let skipB=false;const wt=ms=>skipB?Promise.resolve():new Promise(r=>setTimeout(r,ms));
+function arInfo(a,p){const tc=t=>`<i class="t" style="background:${TC[t]||"#888"}33;color:${TC[t]||"#ccc"}">${t}</i>`,id=a?"p":"e";
+document.getElementById(id+"hpt").dataset.st="ATK "+p.atk+" · DEF "+p.def;
+let wk="";if(!a){const w=Object.keys(TY).filter(x=>(p.types||[]).some(d=>TY[x][0].split(" ").includes(d))).slice(0,4);wk=w.length?`<div class="wkrow"><span class="wkl">Weak to</span>`+w.map(tc).join("")+`</div>`:""}
+document.getElementById(id+"info").innerHTML=(p.types||[]).map(tc).join("")+`<span class="rr ${p.rar}">${p.rar||""}</span>`+wk}
 async function playBattle(me,en,r){skipB=false;const $=id=>document.getElementById(id),ar=$("arena");
 ar.classList.add("show");$("ares").style.display="none";let ci=-1,cj=-1;
-const show=(a,p)=>{const el=$(a?"ps":"es");el.getAnimations().forEach(x=>x.cancel());el.style.visibility="visible";el.innerHTML=`<img src="${img(p.id)}" alt="">`;
+const show=(a,p)=>{arInfo(a,p);const el=$(a?"ps":"es");el.getAnimations().forEach(x=>x.cancel());el.style.visibility="visible";el.innerHTML=`<img src="${img(p.id)}" alt="">`;
 $(a?"pnm":"enm").textContent=cap(p.name)+((p.lv||1)>1?" Lv"+p.lv:"");hp(a,p,p.hp*3);el.animate([{transform:`translateX(${a?-80:80}px)`,opacity:0},{transform:"none",opacity:1}],{duration:350})};
-const hp=(a,p,v)=>{const b=$(a?"phb":"ehb"),q=Math.max(0,v)/(p.hp*3);b.style.width=q*100+"%";b.style.background=q>.5?"#4ade80":q>.2?"#facc15":"#f87171"};
+const hp=(a,p,v)=>{const b=$(a?"phb":"ehb"),q=Math.max(0,v)/(p.hp*3);b.style.width=q*100+"%";b.style.background=q>.5?"#4ade80":q>.2?"#facc15":"#f87171";{const t=$(a?"phpt":"ehpt");t.textContent="HP "+Math.max(0,Math.round(v))+"/"+p.hp*3+" · "+(t.dataset.st||"")}};
 const pos=el=>{const a=ar.getBoundingClientRect(),b=el.getBoundingClientRect();return[b.left-a.left+b.width/2,b.top-a.top+b.height/2]};
 const fx=(el,col)=>{const[x,y]=pos(el),d=document.createElement("i");d.className="fx";d.style.cssText=`left:${x}px;top:${y}px;background:radial-gradient(${col},${col}00 70%)`;ar.appendChild(d);d.animate([{transform:"translate(-50%,-50%) scale(.2)",opacity:1},{transform:"translate(-50%,-50%) scale(3)",opacity:0}],{duration:520}).onfinish=()=>d.remove()};
 const flt=(el,t)=>{const[x,y]=pos(el),d=document.createElement("b");d.className="dmg";d.textContent=t;d.style.cssText=`left:${x-14}px;top:${y-30}px`;ar.appendChild(d);d.animate([{transform:"translateY(0)",opacity:1},{transform:"translateY(-50px)",opacity:0}],{duration:800}).onfinish=()=>d.remove()};
