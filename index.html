@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéVault</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=21">
+<link rel="stylesheet" href="style.css?v=22">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b0d17">
-<link rel="stylesheet" href="lobby.css?v=21">
-<link rel="stylesheet" href="login.css?v=21">
+<link rel="stylesheet" href="lobby.css?v=22">
+<link rel="stylesheet" href="login.css?v=22">
 </head>
 <body>
 <div id="boot"><div class="bootball"></div><h1>Poké<span>Vault</span></h1><p id="bootmsg" style="font-weight:600">Loading…</p><div class="bbar"><i id="bootbar"></i></div><p id="boottip" class="sub">Tall grass hides rare Pokémon</p></div>
-<header id="top"><div class="tl"><button class="xb" id="bk" style="display:none" onclick="go('home')">‹ Lobby</button><div class="av" id="av"></div><div class="who"><b id="pname">Trainer</b><span id="plv"></span></div></div><div class="tr"><div class="pill" id="count"></div><button class="pill" id="so" style="display:none;font-family:inherit" onclick="cloud.out()">Sign out</button></div></header>
+<header id="top"><div class="tl"><button class="xb" id="bk" style="display:none" onclick="go('home')">‹ Lobby</button><div class="av" id="av"></div><div class="who"><b id="pname">Trainer</b><span id="plv"></span></div></div><div class="tr"><button class="xb" id="mu" onclick="toggleMute()"></button><div class="pill" id="count"></div><button class="pill" id="so" style="display:none;font-family:inherit" onclick="cloud.out()">Sign out</button></div></header>
 <div id="rotate"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h2>Rotate your phone</h2><p class="sub">PokéVault is played in landscape.</p><button class="go" onclick="goLandscape()" style="max-width:260px">Go fullscreen</button></div>
 <main id="app"></main>
 <div id="ov"><div class="pull" id="pull"></div><button class="pill" style="font-family:inherit;padding:10px 18px" onclick="document.querySelectorAll('.flip').forEach(e=>e.classList.add('open'));chk()">Flip all</button><button class="go" id="addb" style="max-width:520px" onclick="closeOv()">Add to collection</button></div>
@@ -38,12 +38,14 @@
 <button id="n3" onclick="go('top')"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg>Top</button>
 <button id="n2" onclick="go('col')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Collection</button>
 </nav>
-<script src="lobby.js?v=21"></script>
-<script src="game.js?v=21"></script>
-<script src="explore.js?v=21"></script>
-<script src="wild.js?v=21"></script>
-<script src="duel.js?v=21"></script>
-<script type="module" src="auth.js?v=21"></script>
-<script type="module" src="login.js?v=21"></script>
+<script src="sfx.js?v=22"></script>
+<script src="lobby.js?v=22"></script>
+<script src="game.js?v=22"></script>
+<script src="explore.js?v=22"></script>
+<script src="wild.js?v=22"></script>
+<script src="lab.js?v=22"></script>
+<script src="duel.js?v=22"></script>
+<script type="module" src="auth.js?v=22"></script>
+<script type="module" src="login.js?v=22"></script>
 </body>
 </html>

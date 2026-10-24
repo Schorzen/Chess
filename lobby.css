@@ -82,3 +82,16 @@ body{padding:0!important;height:100dvh;overflow:hidden}nav{display:none}
 .abox .hpt{margin-top:4px;font-size:10.5px}.abox .meta2{margin-top:4px;gap:4px}
 .wkrow{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
 #es{top:5%;height:42%}#ps{bottom:20%;height:46%}#etag{top:calc(5% - 16px)}
+
+/* Poké Lab */
+#lab{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;background:repeating-conic-gradient(#e8f1f2 0 25%,#dbe8ea 0 50%) 0 0/48px 48px;color:#1e2b3a}#lab.show{display:flex}
+.labtop{display:flex;align-items:center;gap:10px;padding:8px max(14px,env(safe-area-inset-left));background:#2a9d8f;color:#fff;height:48px}.labtop b{flex:1;font-size:18px}.labtop .pill{background:#ffffff26;border-color:#ffffff44;color:#fff}
+.labbody{flex:1;display:flex;gap:12px;padding:10px max(14px,env(safe-area-inset-left));min-height:0}
+.lablist{width:42%;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-content:start}
+.lm{background:#fff;border:2px solid #cfd8e3;border-radius:12px;padding:6px;text-align:center;font-size:11px;display:flex;flex-direction:column;align-items:center}.lm.on{border-color:#2a9d8f;box-shadow:0 0 0 2px #2a9d8f55}.lm img{width:56px;height:56px;object-fit:contain}.lm b{font-size:11px}.lm span{color:#64748b}
+.labdet{flex:1;background:#ffffffee;border-radius:16px;padding:12px 14px;overflow-y:auto;color:#1e2b3a}
+.labdet .sub{color:#64748b}.labdet .bar2 span{color:#64748b}.labdet .bar2 div{background:#dfe6ee}.labdet .bar2 b{color:#1e2b3a;width:64px}.labdet .bar2 u{text-decoration:none;color:#16a34a;font-size:11px}
+.ldh{display:flex;gap:12px;align-items:center;margin-bottom:8px}.ldh img{width:84px;height:84px;object-fit:contain}.ldh h3{font-size:17px}.ldh em{font-style:normal;color:#64748b;font-size:13px}
+.lvpop{animation:lvp .8s}@keyframes lvp{30%{transform:scale(1.25);filter:brightness(1.6) drop-shadow(0 0 14px #ffd43b)}}
+.buyrow{display:flex;gap:8px;margin-top:10px}.buyrow .alt{background:#fff;color:#1e2b3a;border-color:#cfd8e3}.labdet .go{padding:12px}
+#mu,#mu2{padding:6px 10px;display:grid;place-items:center}#mu svg,#mu2 svg{width:18px;height:18px}

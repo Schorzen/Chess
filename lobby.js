@@ -2,16 +2,18 @@
 const ico=p=>`<svg viewBox="0 0 24 24">${p}</svg>`;
 const ball=c=>`<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#222" stroke-width="2"/><path d="M3 20A17 17 0 0 1 37 20Z" fill="${c}" stroke="#222" stroke-width="2"/><path d="M3 20h34" stroke="#222" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#fff" stroke="#222" stroke-width="2"/></svg>`;
 const LURE=`<svg viewBox="0 0 40 40"><path d="M14 6h12l-2 8 8 16a4 4 0 0 1-4 6H12a4 4 0 0 1-4-6l8-16z" fill="#a855f7" stroke="#222" stroke-width="2"/><path d="M13 24h14" stroke="#fff" stroke-width="2"/><circle cx="20" cy="30" r="3" fill="#ffd43b"/></svg>`;
+const POT=`<svg viewBox="0 0 40 40"><path d="M16 8h8v4l6 9v11a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V21l6-9z" fill="#ec4899" stroke="#222" stroke-width="2"/><rect x="15" y="3" width="10" height="6" rx="1" fill="#d6a45a" stroke="#222" stroke-width="2"/><path d="M12 25h16" stroke="#fff" stroke-width="2"/></svg>`;
 const ITEMS=[
 {id:"pb",name:"Poké Ball ×5",desc:"Standard catch chance.",cost:20,ic:ball("#e03131"),give:()=>S.balls=(S.balls||0)+5},
 {id:"gb",name:"Great Ball ×3",desc:"Catch chance ×1.5.",cost:45,ic:ball("#3b82f6"),give:()=>S.gb=(S.gb||0)+3},
 {id:"ub",name:"Ultra Ball ×2",desc:"Catch chance ×2.",cost:90,ic:ball("#facc15"),give:()=>S.ub=(S.ub||0)+2},
 {id:"lure",name:"Lure · 5 min",desc:"Wild Pokémon appear twice as often.",cost:40,ic:LURE,give:()=>S.lure=Math.max(Date.now(),S.lure||0)+3e5},
+{id:"pot",name:"Potion ×3",desc:"Level up Pokémon at the Poké Lab.",cost:70,ic:POT,give:()=>S.pot=(S.pot||0)+3},
 {id:"pack",name:"Premium Pack",desc:"5 cards, boosted odds.",cost:300,ic:'<img src="cardback.jpg" alt="">',act:()=>openPack(true)}];
 function buy(id){const it=ITEMS.find(x=>x.id==id);if(!it||S.coins<it.cost)return;
-if(it.act){it.act();return}S.coins-=it.cost;it.give();save();hdr();render()}
+if(it.act){it.act();return}S.coins-=it.cost;sfx("buy");it.give();save();hdr();render()}
 function storeView(){typeof eb=="function"&&eb();const l=S.lure>Date.now()?" · Lure "+Math.ceil((S.lure-Date.now())/6e4)+" min":"";
-document.getElementById("app").innerHTML=`<h2 style="margin:4px 0">Store</h2><p class="sub" style="margin-bottom:10px">You have: Poké ×${S.balls??10} · Great ×${S.gb||0} · Ultra ×${S.ub||0}${l}</p>
+document.getElementById("app").innerHTML=`<h2 style="margin:4px 0">Store</h2><p class="sub" style="margin-bottom:10px">You have: Poké ×${S.balls??10} · Great ×${S.gb||0} · Ultra ×${S.ub||0} · Potions ×${S.pot||0}${l}</p>
 <div class="items">${ITEMS.map(it=>`<div class="item"><div class="ic">${it.ic}</div><b>${it.name}</b><span>${it.desc}</span><button class="go" ${S.coins<it.cost?"disabled":""} onclick="buy('${it.id}')">${it.cost} coins</button></div>`).join("")}</div>`}
 function lobbyView(){typeof eb=="function"&&eb();
 const all=Object.values(S.col).map(eff).sort((a,b)=>pw(b)-pw(a)),top=all[0],dl=864e5-(Date.now()-S.daily),ready=dl<=0;

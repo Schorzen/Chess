@@ -7,6 +7,8 @@ for(let k=0;k<16;k++){const w=3+Math.floor(r()*5),h=2+Math.floor(r()*4),x0=2+Mat
 for(let y=8;y<12;y++)for(let x=22;x<28;x++)m[y][x]=5;
 const px=MW>>1;for(let y=2;y<MH-2;y++){m[y][px]=3;m[y][px+1]=3}for(let x=2;x<MW-2;x++){m[14][x]=3;m[15][x]=3}
 for(let i=0;i<50;i++){const x=2+Math.floor(r()*(MW-4)),y=2+Math.floor(r()*(MH-4));if(m[y][x]==0)m[y][x]=4}
+for(let y=9;y<=13;y++)for(let x=8;x<=16;x++)m[y][x]=0;
+for(let x=10;x<=14;x++){m[10][x]=6;m[11][x]=6;m[12][x]=8;m[13][x]=8}m[13][12]=7;[[9,13],[15,13],[9,12],[15,12],[8,11],[16,11]].forEach(([x,y])=>m[y][x]=4);
 return m})();
 const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];
 let others={};
@@ -17,18 +19,18 @@ function hud0(){eb();const e=document.getElementById("exb");if(e)e.textContent="
 const ch=d=>`<svg viewBox="0 0 24 24" style="transform:rotate(${d}deg)"><path d="M6 15l6-6 6 6"/></svg>`;
 function exploreView(){VH=7;VW=Math.max(10,Math.min(26,Math.round(VH*innerWidth/innerHeight)));
 document.getElementById("app").innerHTML=`<div class="ex"><canvas id="cv" width="${VW*TS}" height="${VH*TS}"></canvas>
-<div class="exhud"><button class="xb" onclick="go('home')">‹ Lobby</button><div class="exr"><span id="exb"></span><button class="xb" onclick="go('store')">Store</button></div></div>
+<div class="exhud"><button class="xb" onclick="go('home')">‹ Lobby</button><div class="exr"><span id="exb"></span><button class="xb" id="mu2" onclick="toggleMute()"></button><button class="xb" onclick="go('store')">Store</button></div></div>
 <div id="chal"></div><div id="enc"></div><div class="joy" id="joy"><div class="knob" id="knob"></div></div></div>`;
-bindJoy();hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
+bindJoy();paintMute();hud();others={};E.ls=0;E.ck="";window.mp&&mp.start(syncOthers);E.hold=null;E.last=0;runId++;const id=runId;requestAnimationFrame(t=>loop(t,id))}
 const hold=d=>{E.hold=d},rel=()=>{E.hold=null};
 addEventListener("keydown",e=>{const k={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3}[e.key];if(k!=null&&view=="explore"){E.hold=k;e.preventDefault()}});
 addEventListener("keyup",()=>{E.hold=null});
-const walk=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&[0,2,3,4].includes(EMAP[y][x]);
+const walk=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&[0,2,3,4,7].includes(EMAP[y][x]);
 function loop(ts,id){if(view!="explore"){if(id===runId){window.mp&&(mp.stop(),mp.leave());others={}}return}if(id!==runId)return;const dt=E.last?Math.min(50,ts-E.last):16;E.last=ts;
 if(E.t<1){E.t=Math.min(1,E.t+dt/150);if(E.t>=1){E.x=E.tx;E.y=E.ty;E.step^=1;arrive()}}
 else if(E.hold!=null&&!E.enc&&!busyE){E.d=E.hold;const[a,b]=DIRS[E.d],nx=E.x+a,ny=E.y+b;if(walk(nx,ny)){E.tx=nx;E.ty=ny;E.t=0}}
 if(ts-(E.hs||0)>1000){E.hs=ts;hud()}social();const cv=document.getElementById("cv");if(!cv)return;draw(cv.getContext("2d"));requestAnimationFrame(t=>loop(t,id))}
-function arrive(){if(EMAP[E.y][E.x]==2&&Math.random()<(S.lure>Date.now()?.28:.14))encounter()}
+function arrive(){if(EMAP[E.y][E.x]==7){enterLab();return}if(EMAP[E.y][E.x]==2)sfx("grass");if(EMAP[E.y][E.x]==2&&Math.random()<(S.lure>Date.now()?.28:.14))encounter()}
 async function encounter(){busyE=true;{const n=document.getElementById("cv");n&&(n.classList.add("flash"),setTimeout(()=>n.classList.remove("flash"),520))}try{const ids=[];while(ids.length<4){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
 const c=await Promise.all(ids.map(getP)),W={common:62,rare:25,epic:10,legendary:3},tot=c.reduce((a,p)=>a+W[p.rar],0);let q=Math.random()*tot,k=0;for(;k<c.length-1;k++){q-=W[c[k].rar];if(q<=0)break}
 await new Promise(r=>setTimeout(r,450));E.enc=c[k];const p=c[k];const el=document.getElementById("enc");if(!el||view!="explore"){E.enc=null;busyE=false;return}
@@ -56,6 +58,13 @@ function blades(c,x,y,px,py,tm,front){const cols=["#2f8a44","#43b05a","#7fd678"]
 for(let i=0;i<8;i++){const bx=Math.floor(hs(x,y,i)*26)+2,by=Math.floor(hs(x,y,i+9)*14)+(front?0:10),sw=Math.round(Math.sin(tm*3+x*.9+i)*1.4),h=front?8:9+Math.floor(hs(x,y,i+3)*5);
 c.fillStyle=cols[i%3];c.fillRect(px+bx+sw,py+by,2,h);c.fillRect(px+bx+sw-2,py+by+3,2,h-3);c.fillRect(px+bx+sw+2,py+by+2,2,h-2)}}
 function ground(c,t,x,y,px,py,tm){const r=hs(x,y);
+if(t==6){c.fillStyle="#2a9d8f";c.fillRect(px,py,TS,TS);c.fillStyle="#238a7e";for(let i=0;i<4;i++)c.fillRect(px,py+i*8+6,TS,2);c.fillStyle="#1f7a70";
+if(at(x-1,y)!=6)c.fillRect(px,py,3,TS);if(at(x+1,y)!=6)c.fillRect(px+TS-3,py,3,TS);if(at(x,y-1)!=6)c.fillRect(px,py,TS,3);if(y==11)c.fillRect(px,py+TS-5,TS,5);
+if(x==12&&y==10){c.fillStyle="#fff";c.beginPath();c.arc(px+16,py+20,11,0,7);c.fill();c.fillStyle="#e03131";c.beginPath();c.arc(px+16,py+20,11,Math.PI,0);c.fill();c.fillStyle="#111";c.fillRect(px+5,py+19,22,2);c.fillStyle="#fff";c.beginPath();c.arc(px+16,py+20,4,0,7);c.fill();c.strokeStyle="#111";c.lineWidth=1.5;c.stroke()}return}
+if(t==8||t==7){c.fillStyle="#eceff4";c.fillRect(px,py,TS,TS);c.fillStyle="#d5dae3";c.fillRect(px,py+10,TS,1);c.fillRect(px,py+21,TS,1);if(y==13){c.fillStyle="#c3cad6";c.fillRect(px,py+TS-4,TS,4)}
+if(t==8&&y==12&&(x==10||x==14)){c.fillStyle="#35597a";c.fillRect(px+4,py+4,24,24);c.fillStyle="#9fe3f2";c.fillRect(px+6,py+6,20,20);c.fillStyle="#35597a";c.fillRect(px+15,py+6,2,20);c.fillRect(px+6,py+15,20,2)}
+if(t==8&&y==12&&x==12){c.fillStyle="#2a9d8f";c.fillRect(px+2,py+8,28,16);c.fillStyle="#fff";c.font="bold 11px sans-serif";c.textAlign="center";c.fillText("LAB",px+16,py+20);c.textAlign="left"}
+if(t==7){c.fillStyle="#35597a";c.fillRect(px+3,py+2,26,30);c.fillStyle="#9fe3f2";c.fillRect(px+6,py+5,20,27);c.fillStyle="#35597a";c.fillRect(px+15,py+5,2,27);c.fillStyle="#ffd43b";c.fillRect(px+12,py+19,2,4);c.fillRect(px+18,py+19,2,4);c.fillStyle="#ffffff55";c.fillRect(px+7,py+6,5,12)}return}
 if(t==3){c.fillStyle="#ebdfae";c.fillRect(px,py,TS,TS);c.fillStyle="#d9c98f";for(let i=0;i<4;i++)c.fillRect(px+Math.floor(hs(x,y,i)*28)+1,py+Math.floor(hs(x,y,i+5)*28)+1,2,2);
 c.fillStyle="#c9b77c";if(at(x,y-1)!=3&&at(x,y-1)!=2)c.fillRect(px,py,TS,3);if(at(x,y+1)!=3&&at(x,y+1)!=2)c.fillRect(px,py+TS-3,TS,3);if(at(x-1,y)!=3&&at(x-1,y)!=2)c.fillRect(px,py,3,TS);if(at(x+1,y)!=3&&at(x+1,y)!=2)c.fillRect(px+TS-3,py,3,TS);return}
 if(t==5){c.fillStyle="#3d9be0";c.fillRect(px,py,TS,TS);c.fillStyle="#58b0ee";c.fillRect(px,py+8,TS,6);c.fillRect(px,py+22,TS,6);

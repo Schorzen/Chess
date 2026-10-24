@@ -3,7 +3,7 @@ import {auth,db} from "./firebase.js";
 import {doc,getDoc,setDoc,collection,query,orderBy,limit,getDocs,where,addDoc,updateDoc,runTransaction,onSnapshot,deleteDoc} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 let uid=null,timer;
 window.cloudSave=s=>{if(!uid)return;clearTimeout(timer);timer=setTimeout(()=>
- setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,balls:s.balls??10,bl:s.bl||Date.now(),gb:s.gb||0,ub:s.ub||0,lure:s.lure||0,count:Object.keys(s.col).length,
+ setDoc(doc(db,"users",uid),{packs:s.packs,t:s.t,col:s.col,coins:s.coins,daily:s.daily,wins:s.wins||0,bt:s.bt||0,team:s.team||null,balls:s.balls??10,bl:s.bl||Date.now(),gb:s.gb||0,ub:s.ub||0,lure:s.lure||0,pot:s.pot||0,count:Object.keys(s.col).length,
  name:auth.currentUser?.displayName||"Trainer"},{merge:true}).catch(console.error),800)};
 const nm=()=>auth.currentUser?.displayName||"Trainer",tc=()=>collection(db,"trades"),pk=s=>s.docs.map(d=>({id:d.id,...d.data()}));
 window.trade={
@@ -33,7 +33,7 @@ window.onUser=async u=>{
  if(!u){uid=null;stopD();return}
  try{const s=await getDoc(doc(db,"users",u.uid));
  uid=u.uid;window.myName=u.displayName||"Trainer";window.render&&render();watchDuels();
- if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now(),gb:d.gb||0,ub:d.ub||0,lure:d.lure||0})}
+ if(s.exists()){const d=s.data();setState({packs:d.packs,t:d.t,col:d.col||{},coins:d.coins??30,daily:d.daily||0,wins:d.wins||0,bt:d.bt||0,team:d.team||null,balls:d.balls??10,bl:d.bl||Date.now(),gb:d.gb||0,ub:d.ub||0,lure:d.lure||0,pot:d.pot||0})}
  else window.cloudSave(getState())}finally{window.bootDone&&bootDone()}};
 window.cloud=Object.assign(window.cloud||{},{
  async top(){return (await getDocs(query(collection(db,"users"),orderBy("count","desc"),limit(20)))).docs.map(d=>d.data())}});

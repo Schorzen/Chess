@@ -56,10 +56,10 @@ if(e.i!=ci){ci=e.i;show(true,me[ci])}if(e.j!=cj){cj=e.j;show(false,en[cj])}
 const A=e.att=="a",atk=A?me[e.i]:en[e.j],tgt=A?en[e.j]:me[e.i],aEl=$(A?"ps":"es"),tEl=$(A?"es":"ps"),dir=A?1:-1;
 $("atxt").textContent=cap(atk.name)+" attacks!"+(e.m>1.2?" It's super effective!":e.m&&e.m<.9?" Not very effective…":"");
 await aEl.animate([{transform:"translate(0,0)"},{transform:`translate(${dir*50}px,${-dir*30}px)`},{transform:"translate(0,0)"}],{duration:380,easing:"ease-in-out"}).finished;
-fx(tEl,TC[atk.types[0]]||"#fff");tEl.animate([{transform:"translateX(0)",filter:"brightness(1)"},{transform:"translateX(-10px)",filter:"brightness(3)"},{transform:"translateX(10px)"},{transform:"translateX(0)",filter:"brightness(1)"}],{duration:380});
+sfx(e.m>1.2?"sup":e.m&&e.m<.9?"weak":"hit");fx(tEl,TC[atk.types[0]]||"#fff");tEl.animate([{transform:"translateX(0)",filter:"brightness(1)"},{transform:"translateX(-10px)",filter:"brightness(3)"},{transform:"translateX(10px)"},{transform:"translateX(0)",filter:"brightness(1)"}],{duration:380});
 flt(tEl,"-"+e.d);hp(!A,tgt,A?e.hp[1][e.j]:e.hp[0][e.i]);$("pdots").textContent=dots(e.hp[0]);$("edots").textContent=dots(e.hp[1]);await wt(520);
-if(e.faint){$("atxt").textContent=cap(tgt.name)+" fainted!";await tEl.animate([{opacity:1,transform:"translateY(0)"},{opacity:0,transform:"translateY(40px)"}],{duration:500,fill:"forwards"}).finished;await wt(300)}}
-await new Promise(res=>{$("ares").innerHTML=`<div class="res">${r.win?"Victory!":"Defeat"}</div><p class="sub">+${r.reward} coins</p><button class="go" id="acont" style="max-width:300px">Continue</button>`;$("ares").style.display="flex";$("acont").onclick=res});
+if(e.faint){sfx("faint");$("atxt").textContent=cap(tgt.name)+" fainted!";await tEl.animate([{opacity:1,transform:"translateY(0)"},{opacity:0,transform:"translateY(40px)"}],{duration:500,fill:"forwards"}).finished;await wt(300)}}
+sfx(r.win?"win":"lose");await new Promise(res=>{$("ares").innerHTML=`<div class="res">${r.win?"Victory!":"Defeat"}</div><p class="sub">+${r.reward} coins</p><button class="go" id="acont" style="max-width:300px">Continue</button>`;$("ares").style.display="flex";$("acont").onclick=res});
 ar.classList.remove("show")}
 async function fight(){if(busy)return;const me=team();if(me.length<3||Date.now()-(S.bt||0)<3e5)return;busy=true;
 const ids=[];while(ids.length<3){const i=1+Math.floor(Math.random()*TOTAL);if(!ids.includes(i))ids.push(i)}
@@ -90,7 +90,7 @@ async function cancelTrade(id){try{await trade.cancel(id);addCard(OFFERS[id].giv
 async function acceptTrade(id){const t=OFFERS[id],m=elig(t);if(!m)return;
 try{await trade.accept(id,slim(m))}catch(e){tmsg="That offer is gone.";tradeView();return}
 takeCard(m.id);addCard(t.give);save();tmsg="You got "+cap(t.give.name)+"!";tradeView()}
-function claim(){if(Date.now()-S.daily<864e5)return;S.coins+=20;S.daily=Date.now();save();render()}
+function claim(){if(Date.now()-S.daily<864e5)return;S.coins+=20;sfx("buy");S.daily=Date.now();save();render()}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const img=id=>`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
