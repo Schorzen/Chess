@@ -95,3 +95,8 @@ body{padding:0!important;height:100dvh;overflow:hidden}nav{display:none}
 .lvpop{animation:lvp .8s}@keyframes lvp{30%{transform:scale(1.25);filter:brightness(1.6) drop-shadow(0 0 14px #ffd43b)}}
 .buyrow{display:flex;gap:8px;margin-top:10px}.buyrow .alt{background:#fff;color:#1e2b3a;border-color:#cfd8e3}.labdet .go{padding:12px}
 #mu,#mu2{padding:6px 10px;display:grid;place-items:center}#mu svg,#mu2 svg{width:18px;height:18px}
+
+/* minimap + lite mode (for slow phones) */
+#mini{position:absolute;top:56px;left:max(12px,env(safe-area-inset-left));width:134px;height:89px;image-rendering:pixelated;border:2px solid #ffffff55;border-radius:8px;opacity:.9;pointer-events:none}
+.lite *{box-shadow:none!important;text-shadow:none!important}.lite .cl,.lite .pkm,.lite .fan img{animation:none}.lite .pkm,.lite .sp img{filter:none}
+.lite #boot,.lite .lgr,.lite .abox,.lite #atxt{backdrop-filter:none}.lite .bootball{animation-duration:1.6s}
